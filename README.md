@@ -1,8 +1,8 @@
 # jrobitaille.dev
 
-Personal site of Jason Robitaille, Staff Software Engineer. Three routes (`/`, `/projects`, `/resume.pdf`) and a 404, built as a static export and served from Cloudflare's edge. The code is MIT; the site content is Jason's.
+Personal site of Jason Robitaille, Staff Software Engineer. Two routes (`/`, `/resume.pdf`) and a 404, built as a static export and served from Cloudflare's edge. The code is MIT; the site content is Jason's.
 
-**Status:** Phase 1 scaffold. The page is a placeholder; content and design land in Phases 2 and 3 (`docs/PLAN.md`).
+**Status:** Phase 2 content. The home page carries the real content behind a zod schema, unstyled; design lands in Phase 3 (`docs/PLAN.md`).
 
 ## Stack
 
@@ -41,7 +41,8 @@ What was deliberately not done: scheduled model runs, model-driven hooks, agent 
 | `.mcp.json`               | MCP servers used during development: Playwright and Chrome DevTools         |
 | `src/app/`                | Routes, metadata, `robots.ts`, `sitemap.ts`                                 |
 | `src/components/ui/`      | shadcn-installed primitives (owned source)                                  |
-| `src/lib/`                | Pure helpers and `site.ts`, the single source of site identity              |
+| `src/content/`            | Typed content (`schema.ts`, `resume.ts`, `experience.ts`, `projects.ts`)    |
+| `src/lib/`                | Pure helpers: `site.ts` (origin), `json-ld.ts`                              |
 | `src/styles/globals.css`  | Tailwind v4 theme tokens                                                    |
 | `e2e/`                    | Playwright + axe tests                                                      |
 | `package.json`            | Scripts (`check` runs every gate), Node 24 pin via `engines`                |
