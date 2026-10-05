@@ -154,10 +154,19 @@ describe('project cards', () => {
     for (const project of projects) expect(project.link.href).toMatch(/^https:\/\//);
   });
 
-  it('links webOS homebrew to the two homebrew repositories', () => {
+  it('links webOS homebrew to the app archive first and Quick Install second', () => {
     const card = projects.find(project => project.slug === 'webos-homebrew');
-    expect(card?.link.href).toBe('https://github.com/JayCanuck/webos-quick-install');
-    expect(card?.secondaryLink?.href).toBe('https://github.com/JayCanuck/legacy-webos');
+    expect(card?.link.href).toBe('https://github.com/JayCanuck/legacy-webos');
+    expect(card?.secondaryLink?.href).toBe('https://github.com/JayCanuck/webos-quick-install');
+  });
+
+  it('links the team projects first and the owner’s part second', () => {
+    const enact = projects.find(project => project.slug === 'enact-cli');
+    expect(enact?.link.href).toBe('https://github.com/enactjs');
+    expect(enact?.secondaryLink?.href).toBe('https://github.com/enactjs/cli');
+    const svl = projects.find(project => project.slug === 'svl-simulator');
+    expect(svl?.link.href).toBe('https://github.com/lgsvl');
+    expect(svl?.secondaryLink?.href).toBe('https://github.com/lgsvl/svlsimulator.com');
   });
 });
 

@@ -5,7 +5,7 @@ import type { SiteCopy } from '@/content/schema';
 export const siteCopy: SiteCopy = {
   headings: {
     about: 'Hello',
-    work: 'Things I’ve shipped',
+    work: 'Things I’ve built',
     experience: 'Where I’ve been',
     skills: 'Toolbox'
   },

@@ -1,4 +1,4 @@
-# Monthly link check over the built site and docs (spec §6, Tier 2). Deterministic, no model.
+# Monthly link check over the content URLs, the built site and docs (spec §6, Tier 2). Deterministic, no model.
 name: Links
 
 on:
@@ -20,6 +20,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Every external URL in the content files: 200 on its own domain (src/content/links.test.ts).
+      - run: npx vitest run src/content/links.test.ts
+        env:
+          CHECK_LINKS: '1'
       - run: npx next build
       - uses: lycheeverse/lychee-action@v2
         with:
