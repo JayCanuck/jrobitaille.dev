@@ -1,5 +1,5 @@
 // Build-output checks over the served out/index.html (D12): the page renders the highlights and
-// blurbs and nothing from the agent-facing pool, and no public string appears twice.
+// blurbs and nothing from the agent-facing detail, and no public string appears twice.
 import { expect, test } from '@playwright/test';
 
 import { earlier, employer } from '../src/content/experience';
@@ -18,10 +18,10 @@ test('home renders every highlight and blurb and none of the hidden dataset', as
   for (const project of projects) expect(text).toContain(project.blurb);
 
   for (const bullet of timelineNodes.flatMap(node => node.bullets)) {
-    expect(text).not.toContain(bullet.text);
+    expect(text).not.toContain(bullet);
   }
   expect(text).not.toContain(summary);
-  for (const entry of openSource) expect(text).not.toContain(entry.text);
+  for (const entry of openSource) expect(text).not.toContain(entry);
   expect(text).not.toContain(education);
 });
 

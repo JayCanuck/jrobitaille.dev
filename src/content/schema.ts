@@ -1,5 +1,5 @@
 // Content schema: every public string on the site is typed here and validated in schema.test.ts.
-// Two layers (D12): the full agent-facing dataset (bullets, summary, open source, education) and the
+// Two layers (D12): the full agent-facing data (bullets, summary, open source, education) and the
 // page layer (highlights, blurbs), which is all the home page renders in Phase 2.
 import { z } from 'zod';
 
@@ -21,11 +21,8 @@ export const imageSchema = z
   })
   .refine(image => image.width * 10 === image.height * 16, 'image must be 16:10');
 
-// Bullet IDs are the resume-data.js b14 ids, so a claim is never introduced without a source.
-const bulletSchema = z.object({
-  id: z.string().regex(/^(RV|SM|SW|SR|SE|OS|PRE)-[A-Z0-9]+$/),
-  text: z.string().min(1)
-});
+// Resume bullets in resume order; each is approved resume content.
+const bulletsSchema = z.array(z.string().min(1)).min(1);
 
 // Page layer: one or two lines per timeline node, each under 140 characters.
 const highlightsSchema = z.array(z.string().min(1).max(139)).min(1).max(2);
@@ -36,7 +33,7 @@ const eraSchema = z.object({
   years: z.string().min(1),
   desc: z.string().min(1),
   line: z.string().min(1),
-  bullets: z.array(bulletSchema).min(1),
+  bullets: bulletsSchema,
   highlights: highlightsSchema,
   link: linkSchema.optional()
 });
@@ -64,14 +61,14 @@ const earlierRoleSchema = z.object({
   dates: z.string().min(1),
   years: z.string().min(1),
   desc: z.string().min(1),
-  bullets: z.array(bulletSchema).min(1),
+  bullets: bulletsSchema,
   highlights: highlightsSchema,
   link: linkSchema.optional()
 });
 
 export const earlierRolesSchema = z.array(earlierRoleSchema).min(1);
 
-export const openSourceSchema = z.array(bulletSchema).min(1);
+export const openSourceSchema = bulletsSchema;
 
 const skillGroupSchema = z.object({
   name: z.string().min(1),
@@ -102,7 +99,7 @@ const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   era: z.string().min(1),
-  // Plain sentences, locked by Jason (D12). Ceiling is three: the @enact/cli blurb has three.
+  // Plain approved sentences (D12). Ceiling is three: the @enact/cli blurb has three.
   blurb: z
     .string()
     .min(1)
@@ -123,7 +120,6 @@ export const projectsSchema = z
 export type Link = z.infer<typeof linkSchema>;
 export type Employer = z.infer<typeof employerSchema>;
 export type EarlierRole = z.infer<typeof earlierRoleSchema>;
-export type Bullet = z.infer<typeof bulletSchema>;
 export type SkillGroup = z.infer<typeof skillGroupSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Project = z.infer<typeof projectSchema>;

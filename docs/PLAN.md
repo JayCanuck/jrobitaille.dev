@@ -22,7 +22,7 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 
 ## Phase 2: content model and pages
 
-- [x] `src/content/schema.ts` (zod) with Vitest schema and never-ship tests; `resume.ts`, `experience.ts`, `projects.ts`
+- [x] `src/content/schema.ts` (zod) with Vitest schema and content guard tests; `resume.ts`, `experience.ts`, `projects.ts`
 - [x] Hero, about, experience timeline, selected work (five cards), skills chips, footer, JSON-LD Person and WebSite
 - [x] 404 page, `public/resume.pdf` (no `/projects` route, D11)
 - [x] Everything Server Components; content complete, no styling polish

@@ -1,7 +1,7 @@
-// Mirrors Job-Search\12-Draft-Suite\resume-build\resume-data.js (b14). When the resume changes, update
-// this file in the same sitting. Hero lines are locked in docs/SPEC.md §2; About is the LinkedIn text
-// verbatim (D5). Summary, open source and education are agent-facing only in Phase 2 (D12).
-import type { Bullet, Profile, SkillGroup } from '@/content/schema';
+// Content mirrors the current master resume and public profile text; update both together.
+// Hero lines are fixed in docs/SPEC.md §2; About is the public profile text verbatim (D5).
+// Summary, open source and education are agent-facing data only in Phase 2 (D12).
+import type { Profile, SkillGroup } from '@/content/schema';
 
 export const profile: Profile = {
   name: 'Jason Robitaille',
@@ -41,23 +41,11 @@ export const skills: SkillGroup[] = [
   { name: 'CI and cloud', terms: ['Jenkins', 'GitLab CI', 'AWS Amplify', 'S3', 'Puppeteer'] }
 ];
 
-export const openSource: Bullet[] = [
-  {
-    id: 'OS-1',
-    text: 'Enact, LG’s open-source React framework for webOS (github.com/enactjs, 346 stars). Created @enact/cli and cut every framework release until 2020.'
-  },
-  {
-    id: 'OS-2',
-    text: 'Enyo (github.com/enyojs). Enact’s predecessor. Cut its final releases, and wrote enyo-ext (github.com/jaycanuck/enyo-ext, 19 stars), a personal extensions library for it.'
-  },
-  {
-    id: 'OS-3',
-    text: 'SVL Simulator site (github.com/lgsvl/svlsimulator.com). The simulator’s static Gatsby marketing site, primary author.'
-  },
-  {
-    id: 'OS-4',
-    text: 'webOS homebrew (github.com/jaycanuck). WebOS Quick Install (55 stars) and java-weboslib, its reverse-engineered device library.'
-  }
+export const openSource: string[] = [
+  'Enact, LG’s open-source React framework for webOS (github.com/enactjs, 346 stars). Created @enact/cli and cut every framework release until 2020.',
+  'Enyo (github.com/enyojs). Enact’s predecessor. Cut its final releases, and wrote enyo-ext (github.com/jaycanuck/enyo-ext, 19 stars), a personal extensions library for it.',
+  'SVL Simulator site (github.com/lgsvl/svlsimulator.com). The simulator’s static Gatsby marketing site, primary author.',
+  'webOS homebrew (github.com/jaycanuck). WebOS Quick Install (55 stars) and java-weboslib, its reverse-engineered device library.'
 ];
 
 export const education = 'B.Sc. Computer Science, University of Manitoba, 2014';

@@ -41,8 +41,12 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 - **SEO built in.** `metadata` per page, JSON-LD `Person` and `WebSite` on home, `sitemap.ts`, `robots.ts` permissive including AI crawlers, `manifest.ts`, favicon set, `llms.txt`.
 - **Performance budget.** Initial JS under 120 KB gzipped on home; LCP under 1.5 s on throttled 4G. Lazy islands must not move LCP or CLS.
 - **Security headers** via Cloudflare `_headers`: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
-- **Claims discipline.** Every public string is checked against `.claude/rules/content.md`. Never reintroduce struck content.
-- **Content mirror.** `src/content/resume.ts` and `experience.ts` mirror `Job-Search\12-Draft-Suite\resume-build\resume-data.js` (b14). When the resume changes, update this file in the same sitting. The page renders highlights and blurbs only; the full bullet pool is for agents (D12).
+- **Public content rules.** Every public string is checked against `.claude/rules/content.md`. Never reintroduce removed content.
+- **Content sync.** Content mirrors the current master resume and public profile text; update both together. The page renders highlights and blurbs only; the full experience detail is kept for the agent-facing data (D12).
+
+## Public repo
+
+Commit messages, PR titles and PR bodies describe the change only. Never reference files, folders, documents, conversations or tooling outside this repository, and never use the owner's name in comments.
 
 ## Token discipline
 

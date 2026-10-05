@@ -1,27 +1,34 @@
-// Claims discipline: no public string may carry a never-ship term from .claude/rules/content.md.
+// Content guard: no string in the content files may break the public content rules in
+// .claude/rules/content.md. Generic checks live here; a gitignored content-guard.local.json
+// ({ "deny": [regex strings] }) adds the site-specific terms and is skipped when absent.
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
 import { education, openSource, profile, skills, summary } from '@/content/resume';
 
-// Mirrors the never-ship list in .claude/rules/content.md, plus two session additions:
-// the unclaimable LLM prototype wording (RV-8) and the lapsed svlsimulator.com domain
-// (bare host only; the github.com/lgsvl/svlsimulator.com repo link is fine).
-const NEVER_SHIP: [string, RegExp][] = [
-  ['phone number', /\(?650\)?[ -]?996|\d{3}[-. ]\d{3}[-. ]\d{4}/],
+const PUBLIC_EMAIL = 'jason.aj.robitaille@gmail.com';
+
+const CONTENT_GUARD: [string, RegExp][] = [
+  ['phone number', /\(?\d{3}\)?[ .-]?\d{3}[ .-]?\d{4}/],
   [
     'street address',
     /\b\d{2,5} [A-Z][a-z]+ (St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Blvd|Way|Ct|Ln)\b/
   ],
-  ['payroll entity', /Zenith/],
-  ['lab name', /Emerging Tech Lab/],
-  ['compensation or severance', /severance|compensation|salary/i],
-  ['patents', /patent/i],
-  ['download counts', /\d[\d,]*\s*downloads?\b|downloads? counts?/i],
-  ['unclaimable LLM prototype', /Anthropic API/],
-  ['lapsed domain', /(?<![\w/.])svlsimulator\.com/]
+  // Lapsed domain, bare host only; a repository path containing it is fine.
+  ['svlsimulator.com host', /(?<![\w/.])svlsimulator\.com/]
 ];
+
+const LOCAL_GUARD = new URL('../../content-guard.local.json', import.meta.url);
+
+const loadLocalGuard = (): [string, RegExp][] => {
+  if (!existsSync(LOCAL_GUARD)) return [];
+  const { deny } = JSON.parse(readFileSync(LOCAL_GUARD, 'utf8')) as { deny: string[] };
+  return deny.map((source, index) => [`local rule ${String(index + 1)}`, new RegExp(source, 'i')]);
+};
+
+const localGuard = loadLocalGuard();
 
 const collectStrings = (value: unknown, out: string[] = []): string[] => {
   if (typeof value === 'string') out.push(value);
@@ -31,8 +38,8 @@ const collectStrings = (value: unknown, out: string[] = []): string[] => {
   return out;
 };
 
-// The full agent-facing dataset, hidden bullets included (D12): never-ship applies to every string.
-const publicStrings = collectStrings([
+// The full agent-facing data, unrendered bullets included (D12): the guard applies to every string.
+const contentStrings = collectStrings([
   profile,
   summary,
   skills,
@@ -43,24 +50,25 @@ const publicStrings = collectStrings([
   projects
 ]);
 
-describe('public strings', () => {
+describe('content strings', () => {
   it('exist', () => {
-    expect(publicStrings.length).toBeGreaterThan(50);
+    expect(contentStrings.length).toBeGreaterThan(50);
   });
 
-  it.each(NEVER_SHIP)('never contain a %s', (_label, pattern) => {
-    const offenders = publicStrings.filter(text => pattern.test(text));
+  it('apply the local guard when it is present', () => {
+    if (localGuard.length === 0) {
+      console.info('content guard: local guard not present, generic checks only');
+    }
+    expect(localGuard.every(([, pattern]) => pattern instanceof RegExp)).toBe(true);
+  });
+
+  it.each([...CONTENT_GUARD, ...localGuard])('never match the %s rule', (_label, pattern) => {
+    const offenders = contentStrings.filter(text => pattern.test(text));
     expect(offenders).toEqual([]);
   });
 
   it('carry only the public email address', () => {
-    const emails = publicStrings.flatMap(text => text.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) ?? []);
-    expect(new Set(emails)).toEqual(new Set(['jason.aj.robitaille@gmail.com']));
-  });
-
-  it('link to the download button, not download counts', () => {
-    expect(
-      NEVER_SHIP.find(([label]) => label === 'download counts')?.[1].test('Resume (PDF)')
-    ).toBe(false);
+    const emails = contentStrings.flatMap(text => text.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) ?? []);
+    expect(new Set(emails)).toEqual(new Set([PUBLIC_EMAIL]));
   });
 });

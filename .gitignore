@@ -47,3 +47,7 @@ next-env.d.ts
 
 # cloudflare
 .wrangler/
+
+# local content guard (private term list, never committed)
+content-guard.local.json
+.claude/rules/*.local.md

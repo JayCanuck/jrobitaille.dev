@@ -1,5 +1,5 @@
 // Selected work: five proof-linked cards, all on the home page (D11). Blurbs describe the project as
-// a thing, first person like the About; locked by Jason 2026-10-04 (D12). Do not polish.
+// a thing, first person like the About; approved resume content. Do not polish.
 import type { Project } from '@/content/schema';
 
 export const projects: Project[] = [
