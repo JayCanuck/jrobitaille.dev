@@ -10,11 +10,11 @@ interface ProjectCardProps {
 const linkClass =
   'underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none';
 
-// Title, era, one or two sentences, primary proof link, optional secondary link (D11).
-// The 16:10 image slot is reserved now so Phase 3 screenshots land without layout shift.
+// Title, a one-line blurb clamped to two lines so every card is the same height, and a footer row
+// with the proof links and the year span (D13). The 16:10 image slot is reserved for Phase 3.
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Card className="pt-0">
+    <Card className="h-full w-full pt-0">
       {project.image ? (
         <Image
           src={project.image.src}
@@ -28,20 +28,22 @@ export function ProjectCard({ project }: ProjectCardProps) {
       )}
       <CardHeader>
         <h3 className="text-base leading-snug font-medium">{project.title}</h3>
-        <p className="text-sm text-muted-foreground">{project.era}</p>
       </CardHeader>
       <CardContent>
-        <p>{project.blurb}</p>
+        <p className="line-clamp-2">{project.blurb}</p>
       </CardContent>
-      <CardFooter className="gap-4">
-        <a href={project.link.href} rel="noopener noreferrer" className={linkClass}>
-          {project.link.label}
-        </a>
-        {project.secondaryLink && (
-          <a href={project.secondaryLink.href} rel="noopener noreferrer" className={linkClass}>
-            {project.secondaryLink.label}
+      <CardFooter className="mt-auto justify-between gap-4 text-sm">
+        <span className="flex flex-wrap gap-4">
+          <a href={project.link.href} rel="noopener noreferrer" className={linkClass}>
+            {project.link.label}
           </a>
-        )}
+          {project.secondaryLink && (
+            <a href={project.secondaryLink.href} rel="noopener noreferrer" className={linkClass}>
+              {project.secondaryLink.label}
+            </a>
+          )}
+        </span>
+        <span className="text-muted-foreground">{project.era}</span>
       </CardFooter>
     </Card>
   );

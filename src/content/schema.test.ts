@@ -1,11 +1,13 @@
 // The real content must satisfy the zod schema; structural rules (order, counts, highlights) live
-// here too (tdd.md, D12).
+// here too (tdd.md, D12, D13).
 import { describe, expect, it } from 'vitest';
 
 import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
 import { education, openSource, profile, skills, summary } from '@/content/resume';
 import {
+  BLURB_MAX_LENGTH,
+  bulletText,
   earlierRolesSchema,
   employerSchema,
   imageSchema,
@@ -52,6 +54,29 @@ describe('content parses against the schema', () => {
   });
 });
 
+describe('web copy sized for the page (D13)', () => {
+  it('About is two short paragraphs with the long form kept for agents', () => {
+    expect(profile.about).toHaveLength(2);
+    expect(profile.aboutLong).toHaveLength(4);
+    expect(profile.metaDescription.length).toBeLessThanOrEqual(160);
+  });
+
+  it('every card blurb is one line within the cap and keeps a longer description', () => {
+    for (const project of projects) {
+      expect(project.blurb.length).toBeLessThanOrEqual(BLURB_MAX_LENGTH);
+      expect(project.description.length).toBeGreaterThan(project.blurb.length);
+    }
+  });
+
+  it('keeps the webOS.js reference on its bullet in the agent-facing data', () => {
+    const experis = earlier.find(role => role.org === 'Experis IT');
+    const bullet = experis?.bullets.find(item => bulletText(item).startsWith('Wrote webOS.js'));
+    expect(bullet).toMatchObject({
+      reference: 'https://webostv.developer.lge.com/develop/references/webostvjs-webos'
+    });
+  });
+});
+
 describe('agent-facing data', () => {
   it('keeps the full experience detail: bullets per era and four open source entries', () => {
     const bulletCounts = Object.fromEntries(
@@ -61,12 +86,13 @@ describe('agent-facing data', () => {
     expect(openSource).toHaveLength(4);
   });
 
-  it('keeps the title ladder newest first', () => {
+  it('keeps the title ladder newest first with full titles as rail labels', () => {
     expect(employer.titles.map(title => title.title)).toEqual([
       'Staff Software Engineer',
       'Senior Software Engineer',
       'Software Engineer'
     ]);
+    for (const title of employer.titles) expect(title.rail).toBe(title.title);
     expect(eras.map(era => era.id)).toEqual(['RV', 'SM', 'SW', 'SR', 'SE']);
   });
 });
@@ -89,6 +115,10 @@ describe('experience timeline', () => {
     const canuck = earlier.find(role => role.org === 'Canuck Coding');
     expect(canuck?.rail).toBe('Software Developer (self-employed)');
   });
+
+  it('links the RetailVerse era to the press release', () => {
+    expect(eras[0]?.link?.href).toContain('lg.com/us/newsroom');
+  });
 });
 
 describe('project cards', () => {
@@ -96,6 +126,12 @@ describe('project cards', () => {
     expect(projects).toHaveLength(5);
     expect(new Set(projects.map(project => project.slug)).size).toBe(5);
     for (const project of projects) expect(project.link.href).toMatch(/^https:\/\//);
+  });
+
+  it('links webOS homebrew to the two homebrew repositories', () => {
+    const card = projects.find(project => project.slug === 'webos-homebrew');
+    expect(card?.link.href).toBe('https://github.com/JayCanuck/webos-quick-install');
+    expect(card?.secondaryLink?.href).toBe('https://github.com/JayCanuck/legacy-webos');
   });
 });
 

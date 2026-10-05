@@ -16,7 +16,14 @@ export const profile: Profile = {
     github: 'https://github.com/JayCanuck',
     npm: 'https://www.npmjs.com/~jaycanuck'
   },
+  metaDescription:
+    'Staff software engineer: full-stack, platform and developer tooling, 15+ years shipping web products. Mountain View, CA, open to remote.',
+  // Page copy sized for the screen (D13); the long form below is kept for the agent-facing data.
   about: [
+    'I started in the Palm webOS homebrew community, and that pull toward web and cloud tech has carried me through 15+ years, most of them at LG shipping full-stack web products and the platform work underneath them: the Enact React framework for webOS TVs and its build tooling, the cloud platform for the SVL autonomous-driving simulator, and the 3D product experience on LG.com.',
+    'My team was eliminated in LG’s 2026 restructuring, so I’m looking for full-stack, platform or developer tooling roles, remote or in the SF Bay Area.'
+  ],
+  aboutLong: [
     'I started out in the Palm webOS homebrew community, patching system apps and building webapps the platform didn’t have yet, and that pull toward web and cloud tech has carried me through 15+ years in the industry. Most of that was at LG, shipping full-stack web products and the platform work underneath them.',
     'That ranged from the Enact React framework for webOS TVs and its build tooling, to the cloud platform for the SVL autonomous-driving simulator, to the 3D product experience now live on LG.com (a site with millions of monthly visitors, per LG).',
     'I enjoy the process of making, bringing an idea into being from the “what” and “why” through to the “how”, and building it alongside people who come at it from different skillsets than mine.',

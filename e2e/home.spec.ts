@@ -21,25 +21,46 @@ test('home renders the hero links', async ({ page }) => {
   );
 });
 
-test('home renders every section with its content', async ({ page }) => {
+test('home renders every section in order with its content', async ({ page }) => {
   await page.goto('/');
 
-  for (const name of ['About', 'Experience', 'Selected work', 'Skills']) {
-    await expect(page.getByRole('heading', { level: 2, name })).toBeVisible();
-  }
+  // Section order (D13): hero, About, Selected work, Experience, Skills.
+  await expect(page.getByRole('heading', { level: 2 })).toHaveText([
+    'About',
+    'Selected work',
+    'Experience',
+    'Skills'
+  ]);
   await expect(
     page.getByRole('heading', { level: 3, name: 'LG Electronics, 2015 to 2026' })
   ).toBeVisible();
   await expect(page.getByRole('heading', { level: 3 })).toHaveCount(3 + 5 + 5);
   await expect(page.getByRole('heading', { level: 4 })).toHaveCount(5);
+  // The title ladder is a labelled non-heading element.
+  await expect(page.getByRole('heading', { name: 'Senior Software Engineer' })).toHaveCount(0);
+  await expect(page.getByText('Senior Software Engineer')).toBeVisible();
   await expect(page.getByRole('heading', { level: 3, name: 'Canuck Coding' })).toBeVisible();
   await expect(
     page.getByRole('heading', { level: 3, name: 'gamelist-utils and muos.js' })
   ).toBeVisible();
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(2);
-  await expect(
-    page.getByRole('contentinfo').getByText('Jason Robitaille (JayCanuck)')
-  ).toBeVisible();
+});
+
+test('home footer is one line with the build year, email and source link', async ({ page }) => {
+  await page.goto('/');
+  const footer = page.getByRole('contentinfo');
+
+  await expect(footer).toHaveText(
+    `© ${String(new Date().getFullYear())} Jason Robitaille · jason.aj.robitaille@gmail.com · Source`
+  );
+  await expect(footer.getByRole('link', { name: 'jason.aj.robitaille@gmail.com' })).toHaveAttribute(
+    'href',
+    'mailto:jason.aj.robitaille@gmail.com'
+  );
+  await expect(footer.getByRole('link', { name: 'Source' })).toHaveAttribute(
+    'href',
+    'https://github.com/JayCanuck/jrobitaille.dev'
+  );
 });
 
 test('home has no axe violations', async ({ page }) => {

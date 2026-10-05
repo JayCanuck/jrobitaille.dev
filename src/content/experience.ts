@@ -11,7 +11,7 @@ export const employer: Employer = {
   titles: [
     {
       title: 'Staff Software Engineer',
-      rail: 'Staff',
+      rail: 'Staff Software Engineer',
       dates: 'Feb 2020 to Sept 2026',
       eras: [
         {
@@ -31,7 +31,11 @@ export const employer: Employer = {
           highlights: [
             'Architected the embeddable React 3D viewer plugin behind RetailVerse Web, from solo KBIS 2025 prototype to LG.com launch.',
             'Built the Configurator’s 3D editor and co-designed its data models and APIs. Review authority across the team’s 15 web projects.'
-          ]
+          ],
+          link: {
+            label: 'LG press release',
+            href: 'https://www.lg.com/us/newsroom/home-appliance/lg-electronics-unveils-retailverse-tranforming-e-commerce-with-immersive-ai-enabled-3d-product-experiences'
+          }
         },
         {
           id: 'SM',
@@ -70,7 +74,7 @@ export const employer: Employer = {
     },
     {
       title: 'Senior Software Engineer',
-      rail: 'Senior',
+      rail: 'Senior Software Engineer',
       dates: 'Jan 2017 to Feb 2020',
       eras: [
         {
@@ -129,7 +133,10 @@ export const earlier: EarlierRole[] = [
     years: '2013 to 2015',
     desc: 'Two-year remote contract with LG Silicon Valley Lab’s Enyo framework team, hired out of the webOS homebrew community.',
     bullets: [
-      'Wrote webOS.js, the standalone library giving partner apps webOS integration outside Enyo, still documented as compatible by LG’s webOSTV.js SDK, and published generator-enyo, a Yeoman generator for scaffolding Enyo apps.'
+      {
+        text: 'Wrote webOS.js, the standalone library giving partner apps webOS integration outside Enyo, still documented as compatible by LG’s webOSTV.js SDK, and published generator-enyo, a Yeoman generator for scaffolding Enyo apps.',
+        reference: 'https://webostv.developer.lge.com/develop/references/webostvjs-webos'
+      }
     ],
     highlights: [
       'Wrote webOS.js, still documented as compatible by LG’s webOSTV.js SDK, and published generator-enyo.'
