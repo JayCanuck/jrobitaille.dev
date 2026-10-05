@@ -30,8 +30,7 @@ export function layoutTimeline<T extends { kind: TimelineKind }>(
   });
 }
 
-// "2015 to 2017" into the two years the round badge shows.
-export function yearSpan(years: string): { start: string; end: string } {
-  const [start = years, end = ''] = years.split(' to ');
-  return { start, end };
+// "2015 to 2017" into the start year the round badge shows; the era card carries the full range.
+export function startYear(years: string): string {
+  return years.split(' to ')[0] ?? years;
 }

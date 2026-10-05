@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { layoutTimeline, type TimelineKind, yearSpan } from '@/lib/timeline';
+import { layoutTimeline, startYear, type TimelineKind } from '@/lib/timeline';
 
 // The alternating timeline interleaves at 1024+: every era card spans two grid rows and the next
 // card starts one row later on the other side, so it begins at the previous card's midpoint. Labels
@@ -44,12 +44,12 @@ describe('layoutTimeline', () => {
   });
 });
 
-describe('yearSpan', () => {
-  it('splits a year range', () => {
-    expect(yearSpan('2015 to 2017')).toEqual({ start: '2015', end: '2017' });
+describe('startYear', () => {
+  it('takes the start of a year range', () => {
+    expect(startYear('2015 to 2017')).toBe('2015');
   });
 
-  it('leaves a single year with an empty end', () => {
-    expect(yearSpan('2014')).toEqual({ start: '2014', end: '' });
+  it('returns a single year as is', () => {
+    expect(startYear('2014')).toBe('2014');
   });
 });

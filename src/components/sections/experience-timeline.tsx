@@ -3,7 +3,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { earlier, employer } from '@/content/experience';
 import type { Link } from '@/content/schema';
 import { siteCopy } from '@/content/site';
-import { layoutTimeline, yearSpan } from '@/lib/timeline';
+import { layoutTimeline, startYear } from '@/lib/timeline';
 import { cn } from '@/lib/utils';
 
 interface EraView {
@@ -101,7 +101,7 @@ export function ExperienceTimeline() {
               </li>
             );
           }
-          const { start, end } = yearSpan(item.era.years);
+          const start = startYear(item.era.years);
           const side = item.side ?? 'left';
           return (
             <li
@@ -122,7 +122,6 @@ export function ExperienceTimeline() {
                 )}
               >
                 {start}
-                {end && <span className="mt-0.5 text-[0.5625rem] font-medium">to {end}</span>}
               </span>
               <TimelineNode
                 name={item.era.name}
