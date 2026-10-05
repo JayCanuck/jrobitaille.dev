@@ -1,12 +1,12 @@
+import { SectionHeading } from '@/components/ui/section-heading';
 import { profile } from '@/content/resume';
+import { siteCopy } from '@/content/site';
 
-// The LinkedIn About text, verbatim (D5).
+// The short About (D13); the long form stays in the agent-facing data.
 export function About() {
   return (
-    <section aria-labelledby="about-heading" className="flex flex-col gap-4">
-      <h2 id="about-heading" className="text-2xl font-semibold tracking-tight">
-        About
-      </h2>
+    <section aria-labelledby="about-heading" className="flex max-w-[72ch] flex-col gap-5">
+      <SectionHeading id="about-heading">{siteCopy.headings.about}</SectionHeading>
       {profile.about.map(paragraph => (
         <p key={paragraph}>{paragraph}</p>
       ))}

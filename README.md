@@ -2,7 +2,7 @@
 
 Personal site of Jason Robitaille, Staff Software Engineer. Two routes (`/`, `/resume.pdf`) and a 404, built as a static export and served from Cloudflare's edge. The code is MIT; the site content is Jason's.
 
-**Status:** Phase 2 content. The home page carries the real content behind a zod schema, unstyled; design lands in Phase 3 (`docs/PLAN.md`).
+**Status:** Phase 3 design. Styled, accessible and measured; the WebMCP island and word cloud land in Phase 4 (`docs/PLAN.md`).
 
 ## Stack
 

@@ -49,3 +49,18 @@ jobs:
       - run: npm ci
       - run: npx next typegen
       - run: npx -y -p typescript@7 tsc --noEmit
+
+  # Lighthouse CI (spec §6): mobile preset against the export served by wrangler dev, asserting
+  # performance >= 0.95 and accessibility, best practices and SEO at 1.0 (lighthouserc.json).
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lighthouse

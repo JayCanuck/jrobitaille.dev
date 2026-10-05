@@ -1,8 +1,14 @@
-// Playwright config: e2e and axe checks against the built export, served by wrangler dev, at 390 and 1280 px (spec §5).
+// Playwright config: e2e and axe checks against the built export, served by wrangler dev, at 390,
+// 768, 1280 and 2560 px (spec §5, D14).
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = process.env.CI !== undefined;
 const baseURL = 'http://127.0.0.1:8787';
+
+const viewport = (width: number, height: number, name: string) => ({
+  name,
+  use: { ...devices['Desktop Chrome'], viewport: { width, height } }
+});
 
 export default defineConfig({
   testDir: './e2e',
@@ -19,19 +25,9 @@ export default defineConfig({
     timeout: 120_000
   },
   projects: [
-    {
-      name: 'mobile-390',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 390, height: 844 }
-      }
-    },
-    {
-      name: 'desktop-1280',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 800 }
-      }
-    }
+    viewport(390, 844, 'mobile-390'),
+    viewport(768, 1024, 'tablet-768'),
+    viewport(1280, 800, 'desktop-1280'),
+    viewport(2560, 1440, 'wide-2560')
   ]
 });

@@ -34,7 +34,7 @@ The site confirms the resume; it does not restate it (D11). There is no `/projec
 
 ## 3. Design direction
 
-Quiet, typographic, generous whitespace, one accent color, system dark mode (D4). A well-set document with a few deliberate motion touches, not a landing page. shadcn default aesthetic tuned with tweakcn. Two fonts max via `next/font` (self-hosted). Timeline reveal with CSS scroll-driven animations behind `@supports` and `prefers-reduced-motion`; where unsupported the nodes are simply visible. No page transitions needed. Fluid type with `clamp()`, container queries for cards, content column near 72ch, one column under 640px, timeline rail on the left edge on mobile.
+Technical, quiet, with personality (D14): crisp where recruiters scan (hero facts, cards, timeline legibility), personality where they linger (headings with voice, the tagline and footer slots, the UFO 404). Slate-and-white family with one accent, "Ultraviolet", system dark mode (D4), no toggle. Geist for body and Geist Mono for labels, dates and the timeline rail, both self-hosted via `next/font`. Tokens as Tailwind v4 `@theme` in `globals.css`. Motion is texture, not a show: the cover band drifts with `animation-timeline: scroll()`, timeline nodes reveal with `animation-timeline: view()`, every effect behind `@supports` and `prefers-reduced-motion`; where unsupported, everything is simply visible and static. No page transitions. Fluid type with `clamp()`, container queries for cards, prose near 72ch with the work grid and timeline on a wider column; cards one column under 640px, two from 768px, three from 1280px with the first card featured across two; timeline alternating on a center rail from 768px, single left rail below.
 
 ## 4. Stack
 

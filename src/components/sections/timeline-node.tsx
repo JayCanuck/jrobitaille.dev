@@ -1,7 +1,6 @@
 import type { Link } from '@/content/schema';
 
 interface TimelineNodeProps {
-  as: 'h3' | 'h4';
   name: string;
   years: string;
   desc: string;
@@ -9,22 +8,17 @@ interface TimelineNodeProps {
   link?: Link;
 }
 
-// One timeline node: name, years, descriptor, one or two highlights, proof link if public.
+// One era card: name (h4), years in mono, descriptor, one or two highlights, proof link if public.
 // Highlights are the page layer; the full experience detail stays in the agent-facing data (D12).
-export function TimelineNode({
-  as: Heading,
-  name,
-  years,
-  desc,
-  highlights,
-  link
-}: TimelineNodeProps) {
+export function TimelineNode({ name, years, desc, highlights, link }: TimelineNodeProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <Heading className="text-lg font-medium">{name}</Heading>
-      <p className="text-sm text-muted-foreground">{years}</p>
-      <p>{desc}</p>
-      <ul className="list-disc pl-5">
+    <div className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-xs sm:p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h4 className="text-base font-semibold">{name}</h4>
+        <p className="font-mono text-label text-muted-foreground">{years}</p>
+      </div>
+      <p className="text-muted-foreground">{desc}</p>
+      <ul className="list-disc space-y-1 pl-5 marker:text-brand">
         {highlights.map(highlight => (
           <li key={highlight}>{highlight}</li>
         ))}
@@ -33,7 +27,7 @@ export function TimelineNode({
         <a
           href={link.href}
           rel="noopener noreferrer"
-          className="w-fit underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="w-fit text-label font-medium text-brand-text underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           {link.label}
         </a>

@@ -1,0 +1,155 @@
+// Image pipeline: source images in assets/images (committed) become AVIF + WebP at fixed sizes in
+// public/images, and src/content/images.ts records the explicit dimensions the components render
+// with (CLS budget 0). Run: node scripts/images.mjs
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import sharp from 'sharp';
+
+const SRC = 'assets/images';
+const OUT = 'public/images';
+
+// name, source file, output size, crop position, alt text; `widths` adds smaller srcset variants.
+const IMAGES = [
+  {
+    name: 'cover',
+    file: 'cover.jpg',
+    width: 1920,
+    height: 600,
+    position: 'attention',
+    alt: '',
+    widths: [640, 1280]
+  },
+  { name: 'avatar', file: 'avatar.jpg', width: 320, height: 320, alt: 'Jason Robitaille' },
+  { name: 'enact-cli', file: 'enactjs.jpg', width: 1200, height: 750, alt: 'Enact framework site' },
+  {
+    name: 'svl-simulator',
+    file: 'svlsimulator.jpg',
+    width: 1200,
+    height: 750,
+    alt: 'SVL Simulator web platform'
+  },
+  {
+    name: 'retailverse-web',
+    file: 'retailverse-web.png',
+    width: 1200,
+    height: 750,
+    alt: 'RetailVerse Web 3D viewer showing an LG washer',
+    optional: true
+  },
+  {
+    name: 'webos-homebrew',
+    file: 'webos-homebrew.png',
+    width: 1200,
+    height: 750,
+    alt: 'WebOS Quick Install desktop application',
+    optional: true
+  },
+  {
+    name: 'gamelist-utils-muos',
+    file: 'gamelist-utils-muos.png',
+    width: 1200,
+    height: 750,
+    alt: 'Terminal showing gamelist-utils --help output',
+    optional: true
+  },
+  {
+    name: 'not-found',
+    file: '404.jpg',
+    width: 1920,
+    height: 600,
+    focusY: 0.52,
+    alt: '',
+    widths: [640, 1280]
+  }
+];
+
+mkdirSync(OUT, { recursive: true });
+const written = [];
+
+// Cover-fit resize; with `focusY` (0 to 1) the band is cut around that vertical point instead of a
+// gravity, for sources whose subject sits off-center (the 404 astronaut and horizon).
+const resizeTo = async (input, image, width, height) => {
+  if (image.focusY === undefined) {
+    return sharp(input).resize(width, height, {
+      fit: 'cover',
+      position: image.position ?? 'centre'
+    });
+  }
+  const meta = await sharp(input).metadata();
+  const scaledHeight = Math.round((meta.height * width) / meta.width);
+  const top = Math.min(
+    Math.max(Math.round(scaledHeight * image.focusY - height / 2), 0),
+    scaledHeight - height
+  );
+  return sharp(input).resize(width, scaledHeight).extract({ left: 0, top, width, height });
+};
+
+for (const image of IMAGES) {
+  const input = join(SRC, image.file);
+  let pipeline;
+  try {
+    pipeline = await resizeTo(input, image, image.width, image.height);
+    await pipeline.metadata();
+  } catch (error) {
+    if (image.optional) {
+      console.log(`skip ${image.name}: ${image.file} not present yet`);
+      continue;
+    }
+    throw error;
+  }
+  await pipeline
+    .clone()
+    .avif({ quality: 55, effort: 6 })
+    .toFile(join(OUT, `${image.name}.avif`));
+  await pipeline
+    .clone()
+    .webp({ quality: 80 })
+    .toFile(join(OUT, `${image.name}.webp`));
+  // Smaller srcset variants at the same aspect ratio, named <name>-<width>.
+  for (const width of image.widths ?? []) {
+    const height = Math.round((image.height * width) / image.width);
+    const variant = await resizeTo(input, image, width, height);
+    await variant
+      .clone()
+      .avif({ quality: 55, effort: 6 })
+      .toFile(join(OUT, `${image.name}-${width}.avif`));
+    await variant
+      .clone()
+      .webp({ quality: 80 })
+      .toFile(join(OUT, `${image.name}-${width}.webp`));
+  }
+  written.push(image);
+  console.log(`wrote ${image.name}.avif + .webp (${image.width}x${image.height})`);
+}
+
+// Favicon set from the avatar; favicon.ico stays as the legacy fallback.
+await sharp(join(SRC, 'avatar.jpg')).resize(32, 32).png().toFile('src/app/icon.png');
+await sharp(join(SRC, 'avatar.jpg')).resize(180, 180).png().toFile('src/app/apple-icon.png');
+// The SVG ships as is; its viewBox gives the explicit dimensions.
+copyFileSync(join(SRC, 'ufo-and-cow.svg'), join(OUT, 'ufo-and-cow.svg'));
+const viewBox = /viewBox="[\d.]+ [\d.]+ ([\d.]+) ([\d.]+)"/.exec(
+  readFileSync(join(SRC, 'ufo-and-cow.svg'), 'utf8')
+);
+if (!viewBox) throw new Error('ufo-and-cow.svg has no viewBox');
+const svgEntry = `  'ufo-and-cow': { src: '/images/ufo-and-cow.svg', width: ${Math.round(Number(viewBox[1]))}, height: ${Math.round(Number(viewBox[2]))}, alt: 'A UFO beaming up a cow' }`;
+
+const entries = [
+  ...written.map(
+    image =>
+      `  '${image.name}': { src: '/images/${image.name}', width: ${image.width}, height: ${image.height}, alt: '${image.alt.replace(/'/g, "\\'")}'${image.widths ? `, widths: [${image.widths.join(', ')}]` : ''} }`
+  ),
+  svgEntry
+].join(',\n');
+
+writeFileSync(
+  'src/content/images.ts',
+  `// Generated by scripts/images.mjs from assets/images; do not edit by hand. Each entry carries the
+// explicit dimensions of the AVIF/WebP pair under public/images (CLS budget 0).
+import type { SiteImage } from '@/content/schema';
+
+export const images = {
+${entries}
+} as const satisfies Record<string, SiteImage>;
+`
+);
+console.log(`src/content/images.ts: ${written.length} entries`);

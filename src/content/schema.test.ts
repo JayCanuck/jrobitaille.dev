@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
+import { images } from '@/content/images';
 import { education, openSource, profile, skills, summary } from '@/content/resume';
 import {
   BLURB_MAX_LENGTH,
@@ -14,8 +15,10 @@ import {
   openSourceSchema,
   profileSchema,
   projectsSchema,
+  siteCopySchema,
   skillsSchema
 } from '@/content/schema';
+import { siteCopy } from '@/content/site';
 
 const issuesOf = (result: { success: boolean; error?: { issues: unknown[] } }) =>
   result.success ? [] : (result.error?.issues ?? ['unknown failure']);
@@ -51,6 +54,29 @@ describe('content parses against the schema', () => {
   it('summary and education are non-empty strings', () => {
     expect(summary.length).toBeGreaterThan(0);
     expect(education.length).toBeGreaterThan(0);
+  });
+
+  it('site copy', () => {
+    expect(issuesOf(siteCopySchema.safeParse(siteCopy))).toEqual([]);
+  });
+
+  it('generated images carry explicit dimensions and a 16:10 card slot where used', () => {
+    for (const image of Object.values(images)) {
+      expect(image.width).toBeGreaterThan(0);
+      expect(image.height).toBeGreaterThan(0);
+    }
+    for (const project of projects) {
+      if (project.image) expect(issuesOf(imageSchema.safeParse(project.image))).toEqual([]);
+    }
+  });
+});
+
+describe('timeline blocks share one order (D14)', () => {
+  it('gives every earlier role an era name distinct from its employer', () => {
+    for (const role of earlier) {
+      expect(role.era.length).toBeGreaterThan(0);
+      expect(role.era).not.toBe(role.org);
+    }
   });
 });
 

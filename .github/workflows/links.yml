@@ -1,0 +1,27 @@
+# Monthly link check over the built site and docs (spec §6, Tier 2). Deterministic, no model.
+name: Links
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx next build
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-path node_modules 'out/**/*.html' 'docs/**/*.md' README.md
+          fail: true

@@ -1,7 +1,21 @@
-/* Design tokens and Tailwind v4 theme (CSS-first, no tailwind.config); shadcn Nova preset, tuned in Phase 3 (spec §4, §5). */
+/* Design tokens and Tailwind v4 theme (CSS-first, no tailwind.config). Slate-and-white family with one
+   brand accent, system dark mode (D4), fluid type, and CSS scroll-driven motion behind @supports and
+   prefers-reduced-motion (D14). shadcn variable names are kept so Card, Badge and Button keep working. */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+
+@theme {
+  /* Fluid type scale: body, labels and display sizes grow with the viewport inside fixed bounds. */
+  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-body--line-height: 1.65;
+  --text-label: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
+  --text-label--line-height: 1.4;
+  --text-h2: clamp(1.5rem, 1.15rem + 1.5vw, 2rem);
+  --text-h2--line-height: 1.2;
+  --text-display: clamp(2rem, 1.3rem + 3vw, 3.25rem);
+  --text-display--line-height: 1.05;
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -9,6 +23,10 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,75 +65,81 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Slate family, light scheme. */
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.21 0.03 265);
+  --card: oklch(0.985 0.003 250);
+  --card-foreground: oklch(0.21 0.03 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.21 0.03 265);
+  --primary: oklch(0.21 0.03 265);
+  --primary-foreground: oklch(0.985 0.003 250);
+  --secondary: oklch(0.967 0.005 250);
+  --secondary-foreground: oklch(0.21 0.03 265);
+  --muted: oklch(0.967 0.005 250);
+  --muted-foreground: oklch(0.52 0.03 260);
+  --accent: oklch(0.967 0.005 250);
+  --accent-foreground: oklch(0.21 0.03 265);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
+  --border: oklch(0.91 0.01 255);
+  --input: oklch(0.91 0.01 255);
+  --radius: 0.625rem;
+  --chart-1: var(--brand);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0.003 250);
+  --sidebar-foreground: oklch(0.21 0.03 265);
+  --sidebar-primary: oklch(0.21 0.03 265);
+  --sidebar-primary-foreground: oklch(0.985 0.003 250);
+  --sidebar-accent: oklch(0.967 0.005 250);
+  --sidebar-accent-foreground: oklch(0.21 0.03 265);
+  --sidebar-border: oklch(0.91 0.01 255);
+  --sidebar-ring: var(--brand);
+
+  /* Brand accent "Ultraviolet" (D14): cooler, a little alien, matches the UFO on the 404.
+     --brand is for fills, rails and rings; --brand-text passes AA on the page background. */
+  --brand: oklch(0.56 0.2 300);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-text: oklch(0.47 0.19 300);
+  --brand-soft: oklch(0.56 0.2 300 / 12%);
+  --ring: var(--brand);
 }
 
 /* D4: dark mode follows prefers-color-scheme; there is no toggle. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: oklch(0.15 0.02 265);
+    --foreground: oklch(0.95 0.01 250);
+    --card: oklch(0.2 0.025 265);
+    --card-foreground: oklch(0.95 0.01 250);
+    --popover: oklch(0.2 0.025 265);
+    --popover-foreground: oklch(0.95 0.01 250);
+    --primary: oklch(0.93 0.01 250);
+    --primary-foreground: oklch(0.2 0.025 265);
+    --secondary: oklch(0.27 0.03 262);
+    --secondary-foreground: oklch(0.95 0.01 250);
+    --muted: oklch(0.27 0.03 262);
+    --muted-foreground: oklch(0.72 0.02 255);
+    --accent: oklch(0.27 0.03 262);
+    --accent-foreground: oklch(0.95 0.01 250);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar: oklch(0.2 0.025 265);
+    --sidebar-foreground: oklch(0.95 0.01 250);
+    --sidebar-primary: var(--brand);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar-accent: oklch(0.27 0.03 262);
+    --sidebar-accent-foreground: oklch(0.95 0.01 250);
+    --sidebar-border: oklch(1 0 0 / 12%);
+
+    --brand: oklch(0.76 0.14 300);
+    --brand-foreground: oklch(0.2 0.03 300);
+    --brand-text: oklch(0.82 0.12 300);
+    --brand-soft: oklch(0.76 0.14 300 / 14%);
   }
 }
 
@@ -123,11 +147,75 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
     color-scheme: light dark;
+  }
+  body {
+    @apply bg-background text-body text-foreground;
+  }
+  ::selection {
+    background: var(--brand-soft);
+  }
+}
+
+/* Motion is texture, not a show. Scroll-driven animation only where supported and wanted; otherwise
+   every element is simply visible and static. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes parallax {
+  from {
+    transform: translateY(-6%) scale(1.08);
+  }
+  to {
+    transform: translateY(6%) scale(1.08);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -6%);
+  }
+}
+
+@layer utilities {
+  @media (prefers-reduced-motion: no-preference) {
+    .float {
+      animation: float 7s ease-in-out infinite;
+    }
+  }
+
+  /* Empty image slot: a short diagonal hatch, not a blank slab, until a real image lands. */
+  .slot-pattern {
+    background-color: var(--muted);
+    background-image: repeating-linear-gradient(135deg, var(--border) 0 1px, transparent 1px 12px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reveal {
+        animation: reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 35%;
+      }
+      .parallax {
+        animation: parallax linear both;
+        animation-timeline: scroll();
+        animation-range: 0 60vh;
+      }
+    }
   }
 }
