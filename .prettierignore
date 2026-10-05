@@ -7,3 +7,8 @@ playwright-report
 test-results
 package-lock.json
 next-env.d.ts
+
+# Local, untracked
+.claude/settings.local.json
+.claude/rules/*.local.md
+content-guard.local.json
