@@ -1,55 +1,112 @@
 # jrobitaille.dev
 
-Personal site of Jason Robitaille, Staff Software Engineer. Two routes (`/`, `/resume.pdf`) and a 404, built as a static export and served from Cloudflare's edge. The code is MIT; the site content is Jason's.
+Source of [jrobitaille.dev](https://jrobitaille.dev), a one-page static personal site, and a working, inspectable record of how it was built with coding agents.
 
-**Status:** Phase 3 design. Styled, accessible and measured; the WebMCP island and word cloud land in Phase 4 (`docs/PLAN.md`).
+[![CI](https://github.com/JayCanuck/jrobitaille.dev/actions/workflows/ci.yml/badge.svg)](https://github.com/JayCanuck/jrobitaille.dev/actions/workflows/ci.yml)
+
+## What this repo is
+
+A personal site: one page, a resume PDF and a 404, rendered to static files at build time and served from Cloudflare Workers static assets. Everything on the page is a Server Component; the shipped JavaScript is the framework runtime and nothing else (D14). The stack is in the table below.
+
+The repo also doubles as a place to try agentic development practices in the open. Every decision, budget and guardrail is committed, so the process can be read and not just the result: `docs/DECISIONS.md` is the running log of decisions with their measurements, and `docs/PLAN.md` is the phase checklist that says what has shipped.
 
 ## Stack
 
-Next.js 16 (App Router, `output: 'export'`, React Compiler), TypeScript strict, Tailwind CSS v4, shadcn/ui on Base UI, Vitest, Playwright + axe, ESLint 9, Prettier 3, knip. Hosted on Cloudflare Workers static assets, deployed by GitHub Actions. Node 24, npm.
-
-Nearly everything is a Server Component rendered at build time, so the shipped JavaScript is Next's runtime baseline plus a small number of deliberate client islands (added in Phase 4). That baseline is the whole bill: evergreen browsers load 143.8 KB gzipped of React DOM, the React Flight client and the Next app router, plus an 11 KB inline payload, and 0 KB of site code. The budget is 150 KB. A zero-JS framework would ship a few KB for the same page; Next was chosen anyway for the hiring signal of a public, well-built Next.js codebase. The trade is recorded in `docs/DECISIONS.md` (D1, D14).
-
-## Run it
-
-```sh
-nvm use            # Node 24, from .nvmrc
-npm ci
-npm run dev        # http://localhost:3000
-npm run check      # every gate: format, lint, knip, typecheck, unit, build, e2e + axe
-```
-
-`npm run e2e` serves `./out` with `wrangler dev`, so run `npm run build` first (or use `npm run check`).
+| Layer           | Choice                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Framework       | Next.js 16.3.8, App Router, `output: 'export'`, React 19.3.0 with the React Compiler    |
+| UI              | shadcn ^4.21.1 on @base-ui/react ^1.8.0, lucide-react ^1.52.0                           |
+| Styling         | Tailwind CSS ^4 through @tailwindcss/postcss, tokens in `src/styles/globals.css`        |
+| Type system     | TypeScript ^6.0.3 strict with `noUncheckedIndexedAccess`; content typed with zod ^4.6.5 |
+| Lint and format | ESLint ^10.12.0 flat config, typescript-eslint ^8.71.0, Prettier ^3.9.9, knip ^6.39.0   |
+| Tests           | Vitest ^5.0.3, Playwright ^1.63.0 with @axe-core/playwright ^4.13.0, @lhci/cli ^0.15.1  |
+| Hosting         | Cloudflare Workers static assets, wrangler ^4.147.0, `wrangler.jsonc`                   |
+| CI              | GitHub Actions: `ci.yml`, `deploy.yml`, `links.yml`, Dependabot weekly                  |
 
 ## How this was built
 
-The site is built with Claude Code, and the build process is part of the repo. Three tiers, each real and each used:
+### The harness, in three tiers
 
-1. **Native harness, in-repo.** `AGENTS.md` carries the rules every agent follows; `CLAUDE.md` imports it. Path-scoped rules in `.claude/rules/` load only when matching files are touched. Subagents in `.claude/agents/` are evaluators (a `reviewer` so far). Hooks in `.claude/settings.json` are deterministic only: Prettier after every edit, and typecheck + lint + unit tests before Claude can call a turn done. No model runs in a hook.
-2. **Agents in CI.** GitHub Actions runs the deterministic gates on every PR. Claude Code Action handles PR review when a `review` label is applied, not on every push. Dependabot runs weekly.
-3. **One-shot method demos.** Spec-driven development, a dynamic multi-agent workflow, and a post-deploy SEO audit, each run once and logged here as the phases ship.
+1. **Deterministic gates first.** Hooks in `.claude/settings.json` run Prettier after every edit (`.claude/hooks/format.mjs`) and block the agent from calling a turn done until typecheck, lint and unit tests pass (`.claude/hooks/stop-gate.mjs`). `npm run check` runs every gate in CI order, and `.github/workflows/ci.yml` runs the same command on every pull request.
+2. **Path-scoped rules second.** `.claude/rules/` holds four rule files that load only when matching files are touched: accessibility and styling for components, public content rules for the content files and routes, and test-first for `src/lib/` and `src/content/`.
+3. **Model-driven review last.** `.claude/agents/reviewer.md` is an adversarial reviewer that runs on request before a PR, never on every change. `.claude/skills/visual-check/SKILL.md` screenshots the built site for a human to look at. `.github/workflows/claude-code-review.yml` runs a review only when a maintainer adds the `review` label.
 
-What was deliberately not done: scheduled model runs, model-driven hooks, agent frameworks with hundreds of skills, a three.js hero. Costs and token notes are filled in as each phase lands.
+The order is the cheapest one: compilers, linters and test runners are free and catch most mistakes, so a model is only asked to look at what they cannot judge.
 
-## Repository map
+### Which file does what
 
-| Path                      | Why it exists                                                               |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `AGENTS.md` / `CLAUDE.md` | Agent instructions (open standard) and the Claude import of it              |
-| `docs/`                   | `SPEC.md` what and why, `DECISIONS.md` D1 onward, `PLAN.md` phase checklist |
-| `.claude/`                | Path-scoped rules, subagents, hooks, hook scripts                           |
-| `.mcp.json`               | MCP servers used during development: Playwright and Chrome DevTools         |
-| `src/app/`                | Routes, metadata, `robots.ts`, `sitemap.ts`                                 |
-| `src/components/ui/`      | shadcn-installed primitives (owned source)                                  |
-| `src/content/`            | Typed content (`schema.ts`, `resume.ts`, `experience.ts`, `projects.ts`)    |
-| `src/lib/`                | Pure helpers: `site.ts` (origin), `json-ld.ts`                              |
-| `src/styles/globals.css`  | Tailwind v4 theme tokens                                                    |
-| `e2e/`                    | Playwright + axe tests                                                      |
-| `package.json`            | Scripts (`check` runs every gate), Node 24 pin via `engines`                |
-| `components.json`         | shadcn CLI config: Base UI, Nova preset, `src/` aliases                     |
-| `wrangler.jsonc`          | Cloudflare Workers static-assets config (custom domain added in Phase 5)    |
-| `.github/`                | `ci.yml` gates, `deploy.yml` to Workers, `dependabot.yml`                   |
+- `AGENTS.md` is the vendor-neutral instruction set: stack, engineering rules, token discipline, process and definition of done. `CLAUDE.md` imports it and adds the Claude-specific notes.
+- `DESIGN.md` is the design source of truth: tokens in YAML front matter and the rules in prose, kept equal to the stylesheet by `src/styles/tokens.test.ts` (D16).
+- `docs/SPEC.md` is the scope: what the site is, what it is not, and how it is built.
+- `docs/DECISIONS.md` is the ADR-lite log, D1 onward; `docs/PLAN.md` is the phase checklist.
+- `.mcp.json` registers the browser tooling the agent uses during development: Playwright and Chrome DevTools.
 
-## License
+### Decisions that were measured rather than assumed
+
+| Decision                              | What was measured                                                                                                                      | Outcome                                                                                         | Record  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------- |
+| Whether to set a `browserslist`       | Export size with Next's default target versus a `last 2 versions` query: 565,368 B raw / 170,007 B gzip versus 608,547 B / 180,878 B   | No `browserslist`; the query downlevelled everything for 11 KB more over the wire               | D10     |
+| Whether to inline the stylesheet      | About 30 KB of CSS, roughly 4 mobile Lighthouse performance points on first load, against a `style-src 'self'` CSP                     | Stylesheet stays external; the strict CSP is worth more than the points                         | D10     |
+| Server Components versus a client app | Home-page JavaScript, gzipped: 116.8 KB React and router, 27.0 KB Next helpers, 11.4 KB inline payload, 0 KB site code                 | 143.8 KB of external scripts against a 150 KB budget, held by an e2e guard                      | D1, D14 |
+| Whether the LCP budget is met         | About paragraph paints at 140 ms unthrottled and 1.9 s under DevTools throttling; Lighthouse's simulation reports 3.2 s and a 93 score | Budget kept at 2.0 s; the simulated score is a known text-LCP artifact, kept as a warning in CI | D14     |
+| Documentation-only design change      | Pixel comparison of eight visual-check captures (four widths, two schemes) against `main`                                              | Zero differing pixels; the design document describes what ships, it does not lead it            | D16     |
+
+### Budgets and how they are enforced
+
+| Budget                                        | Where it is enforced                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Accessibility, best practices and SEO at 1.0  | `lighthouserc.json`, asserted as errors in CI on every pull request                        |
+| FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0 | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning         |
+| Home JavaScript under 150 KB gzipped          | `e2e/budgets.spec.ts`, measured on the served export                                       |
+| Cumulative layout shift of 0                  | `e2e/budgets.spec.ts` at four viewports, plus the Lighthouse assertion                     |
+| No client components or effects under `src/`  | `e2e/budgets.spec.ts`                                                                      |
+| Strict CSP with hashed inline scripts         | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it |
+| LCP under 2.0 s on throttled 4G               | A stated budget (`AGENTS.md`), measured in D14 rather than asserted in CI                  |
+| Design tokens equal to the stylesheet         | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                   |
+
+### Token and cost discipline
+
+- Deterministic checks run before any model is asked: the hooks and `npm run check` are compilers, linters and test runners only, and no hook calls a model (`.claude/settings.json`, `AGENTS.md`).
+- The one model-driven agent in the repo, `reviewer`, runs on Opus on request only (`.claude/agents/reviewer.md`). `AGENTS.md` reserves smaller models for audit-style agents as they are added.
+- Model-driven work in CI is triggered, not scheduled: the review workflow needs the `review` label and `claude.yml` needs an `@claude` mention. The monthly job, `links.yml`, is a link checker with no model.
+- One-shot method demos are planned in `docs/PLAN.md` (Phase 4) and stay one-shot by rule (`AGENTS.md`).
+
+## What was deliberately not done
+
+- No model-driven hooks: hooks run tsc, eslint and vitest only, so every turn costs no tokens beyond the work itself (`AGENTS.md`, `.claude/settings.json`).
+- PR review gated behind a label instead of automatic, so review tokens are spent on milestones, not every push (`.github/workflows/claude-code-review.yml`).
+- No always-on multi-agent orchestration: subagents are evaluators that run on request, and demos are one-shot (`AGENTS.md`).
+- No client-side framework for the initial render: every page is a Server Component rendered at build, and the JavaScript that ships is the framework baseline (D1, D14).
+- No analytics beyond what the hosting provides: Cloudflare Web Analytics and Search Console, no Google Analytics (D2).
+- No dark mode toggle: the scheme follows `prefers-color-scheme` (D4).
+- No `browserslist`: Next's default target already matches the evergreen intent with the smallest output (D10).
+
+## Status
+
+The current phase and what has shipped are in `docs/PLAN.md`.
+
+## Development
+
+Node 24 (`.nvmrc`, `engines` in `package.json`) and npm 10 or newer.
+
+| Script                 | What it does                                                               |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`          | Local dev server                                                           |
+| `npm run build`        | Static export to `./out`, then writes `out/_headers` with the hashed CSP   |
+| `npm run lint`         | ESLint                                                                     |
+| `npm run format`       | Prettier, write mode; `format:check` is the CI form                        |
+| `npm run design:lint`  | Validates `DESIGN.md` against the format                                   |
+| `npm run typecheck`    | Generates route types, then `tsc --noEmit`                                 |
+| `npm run knip`         | Unused files, exports and dependencies                                     |
+| `npm test`             | Vitest unit tests                                                          |
+| `npm run e2e`          | Playwright and axe against `./out` served by `wrangler dev`; build first   |
+| `npm run images`       | Regenerates AVIF and WebP images and their dimensions from `assets/images` |
+| `npm run visual-check` | Screenshots the built site at several widths in both schemes for review    |
+| `npm run lighthouse`   | Lighthouse CI against the built site                                       |
+| `npm run check`        | Every gate in CI order                                                     |
+
+Claude Code, or any agent that reads `AGENTS.md`, is expected to read it first.
+
+## Credits and license
 
 Code: [MIT](LICENSE). Site content (resume text, images, copy): all rights reserved.
