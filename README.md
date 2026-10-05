@@ -6,7 +6,7 @@ Source of [jrobitaille.dev](https://jrobitaille.dev), a one-page static personal
 
 ## What this repo is
 
-A personal site: one page, a resume PDF and a 404, rendered to static files at build time and served from Cloudflare Workers static assets. Everything on the page is a Server Component; the shipped JavaScript is the framework runtime and nothing else (D14). The stack is in the table below.
+A personal site: one page, a resume PDF and a 404, rendered to static files at build time and served from Cloudflare Workers static assets. Everything on the page is a Server Component; the shipped JavaScript is the framework runtime and nothing else. The stack is in the table below.
 
 The repo also doubles as a place to try agentic development practices in the open. Every decision, budget and guardrail is committed, so the process can be read and not just the result: `docs/DECISIONS.md` is the running log of decisions with their measurements, and `docs/PLAN.md` is the phase checklist that says what has shipped.
 
@@ -36,20 +36,22 @@ The order is the cheapest one: compilers, linters and test runners are free and 
 ### Which file does what
 
 - `AGENTS.md` is the vendor-neutral instruction set: stack, engineering rules, token discipline, process and definition of done. `CLAUDE.md` imports it and adds the Claude-specific notes.
-- `DESIGN.md` is the design source of truth: tokens in YAML front matter and the rules in prose, kept equal to the stylesheet by `src/styles/tokens.test.ts` (D16).
+- `DESIGN.md` is the design source of truth: tokens in YAML front matter and the rules in prose, kept equal to the stylesheet by `src/styles/tokens.test.ts`.
 - `docs/SPEC.md` is the scope: what the site is, what it is not, and how it is built.
-- `docs/DECISIONS.md` is the ADR-lite log, D1 onward; `docs/PLAN.md` is the phase checklist.
+- `docs/DECISIONS.md` is the ADR-lite log; `docs/PLAN.md` is the phase checklist.
 - `.mcp.json` registers the browser tooling the agent uses during development: Playwright and Chrome DevTools.
 
 ### Decisions that were measured rather than assumed
 
-| Decision                              | What was measured                                                                                                                      | Outcome                                                                                         | Record  |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------- |
-| Whether to set a `browserslist`       | Export size with Next's default target versus a `last 2 versions` query: 565,368 B raw / 170,007 B gzip versus 608,547 B / 180,878 B   | No `browserslist`; the query downlevelled everything for 11 KB more over the wire               | D10     |
-| Whether to inline the stylesheet      | About 30 KB of CSS, roughly 4 mobile Lighthouse performance points on first load, against a `style-src 'self'` CSP                     | Stylesheet stays external; the strict CSP is worth more than the points                         | D10     |
-| Server Components versus a client app | Home-page JavaScript, gzipped: 116.8 KB React and router, 27.0 KB Next helpers, 11.4 KB inline payload, 0 KB site code                 | 143.8 KB of external scripts against a 150 KB budget, held by an e2e guard                      | D1, D14 |
-| Whether the LCP budget is met         | About paragraph paints at 140 ms unthrottled and 1.9 s under DevTools throttling; Lighthouse's simulation reports 3.2 s and a 93 score | Budget kept at 2.0 s; the simulated score is a known text-LCP artifact, kept as a warning in CI | D14     |
-| Documentation-only design change      | Pixel comparison of eight visual-check captures (four widths, two schemes) against `main`                                              | Zero differing pixels; the design document describes what ships, it does not lead it            | D16     |
+Each row has a full entry in `docs/DECISIONS.md`.
+
+| Decision                              | What was measured                                                                                                                      | Outcome                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Whether to set a `browserslist`       | Export size with Next's default target versus a `last 2 versions` query: 565,368 B raw / 170,007 B gzip versus 608,547 B / 180,878 B   | No `browserslist`; the query downlevelled everything for 11 KB more over the wire               |
+| Whether to inline the stylesheet      | About 30 KB of CSS, roughly 4 mobile Lighthouse performance points on first load, against a `style-src 'self'` CSP                     | Stylesheet stays external; the strict CSP is worth more than the points                         |
+| Server Components versus a client app | Home-page JavaScript, gzipped: 116.8 KB React and router, 27.0 KB Next helpers, 11.4 KB inline payload, 0 KB site code                 | 143.8 KB of external scripts against a 150 KB budget, held by an e2e guard                      |
+| Whether the LCP budget is met         | About paragraph paints at 140 ms unthrottled and 1.9 s under DevTools throttling; Lighthouse's simulation reports 3.2 s and a 93 score | Budget kept at 2.0 s; the simulated score is a known text-LCP artifact, kept as a warning in CI |
+| Documentation-only design change      | Pixel comparison of eight visual-check captures (four widths, two schemes) against `main`                                              | Zero differing pixels; the design document describes what ships, it does not lead it            |
 
 ### Budgets and how they are enforced
 
@@ -61,7 +63,7 @@ The order is the cheapest one: compilers, linters and test runners are free and 
 | Cumulative layout shift of 0                  | `e2e/budgets.spec.ts` at four viewports, plus the Lighthouse assertion                     |
 | No client components or effects under `src/`  | `e2e/budgets.spec.ts`                                                                      |
 | Strict CSP with hashed inline scripts         | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it |
-| LCP under 2.0 s on throttled 4G               | A stated budget (`AGENTS.md`), measured in D14 rather than asserted in CI                  |
+| LCP under 2.0 s on throttled 4G               | A stated budget (`AGENTS.md`), measured in the decisions log rather than asserted in CI    |
 | Design tokens equal to the stylesheet         | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                   |
 
 ### Token and cost discipline
@@ -76,10 +78,10 @@ The order is the cheapest one: compilers, linters and test runners are free and 
 - No model-driven hooks: hooks run tsc, eslint and vitest only, so every turn costs no tokens beyond the work itself (`AGENTS.md`, `.claude/settings.json`).
 - PR review gated behind a label instead of automatic, so review tokens are spent on milestones, not every push (`.github/workflows/claude-code-review.yml`).
 - No always-on multi-agent orchestration: subagents are evaluators that run on request, and demos are one-shot (`AGENTS.md`).
-- No client-side framework for the initial render: every page is a Server Component rendered at build, and the JavaScript that ships is the framework baseline (D1, D14).
-- No analytics beyond what the hosting provides: Cloudflare Web Analytics and Search Console, no Google Analytics (D2).
-- No dark mode toggle: the scheme follows `prefers-color-scheme` (D4).
-- No `browserslist`: Next's default target already matches the evergreen intent with the smallest output (D10).
+- No client-side framework for the initial render: every page is a Server Component rendered at build, and the JavaScript that ships is the framework baseline.
+- No analytics beyond what the hosting provides: Cloudflare Web Analytics and Search Console, no Google Analytics.
+- No dark mode toggle: the scheme follows `prefers-color-scheme`.
+- No `browserslist`: Next's default target already matches the evergreen intent with the smallest output.
 
 ## Status
 
