@@ -37,7 +37,7 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 - **No layout shift.** Explicit `width`/`height` on every image, `next/font`, no late-loading fonts or icons, reserve space for anything that hydrates. CLS budget is 0.
 - **Small files.** Components under ~150 lines, files under ~200. One component per file, props typed with a `Props` suffix, named exports except Next.js route files.
 - **Accessibility.** Semantic landmarks, one `h1` per page, skip link, visible `:focus-visible`, WCAG AA contrast in both color schemes, `prefers-reduced-motion` honored, ARIA only where native semantics fall short, keyboard-navigable everything. Lighthouse a11y 100 and axe clean are CI gates.
-- **Browser support.** Evergreen (last 2 of Chrome, Edge, Firefox, Safari). Progressive enhancement for scroll-driven animations and `<ViewTransition>`.
+- **Browser support.** Evergreen (last 2 of Chrome, Edge, Firefox, Safari). Rely on Next's modern default compile target; revisit if a browserslist is ever needed (D10). Progressive enhancement for scroll-driven animations and `<ViewTransition>`.
 - **SEO built in.** `metadata` per page, JSON-LD `Person` and `WebSite` on home, `sitemap.ts`, `robots.ts` permissive including AI crawlers, `manifest.ts`, favicon set, `llms.txt`.
 - **Performance budget.** Initial JS under 120 KB gzipped on home; LCP under 1.5 s on throttled 4G. Lazy islands must not move LCP or CLS.
 - **Security headers** via Cloudflare `_headers`: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
