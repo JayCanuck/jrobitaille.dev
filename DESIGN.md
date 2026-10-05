@@ -46,6 +46,11 @@ typography:
     fontSize: 1rem
     fontWeight: 400
     lineHeight: 1.65
+  small:
+    fontFamily: Geist
+    fontSize: 0.9375rem
+    fontWeight: 400
+    lineHeight: 1.55
   label:
     fontFamily: Geist Mono
     fontSize: 0.75rem
@@ -54,7 +59,6 @@ typography:
 fluid:
   display: clamp(2rem, 1.3rem + 3vw, 3.25rem)
   h2: clamp(1.5rem, 1.15rem + 1.5vw, 2rem)
-  body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem)
   label: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem)
 rounded:
   sm: 0.375rem
@@ -184,7 +188,7 @@ Geist for body and headings. Geist Mono for labels, dates, the timeline rungs, c
 
 Four weights are in use: 400 for body text, 500 for the title line under the name, chips, tags, group labels and the header nav (shadcn's badge and button defaults), 600 for the name, headings and card titles, 700 for the year badge.
 
-The scale is fluid (`fluid` above): `display` for the name, `h2` for section headings, `body` for everything readable, `label` for mono labels. Each `typography` token holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Card titles and timeline names are 16px at 600; the year badge is 12px (13px from 1024px).
+`body` is fixed at 16px for prose at every width; `small` is the 15px secondary step for card text (project blurbs, timeline descriptors and highlights, the 404 line). The fluid scale (`fluid` above) covers `display` for the name, `h2` for section headings and `label` for mono labels; each of those `typography` tokens holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Inside a card the hierarchy is title 16px at 600, text 15px at 400, labels and dates at the label scale; the year badge is 12px (13px from 1024px).
 
 Section headings carry the voice ("Hello", "Things I've built", "Where I've been", "Toolbox"); nothing else is written with voice.
 

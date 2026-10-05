@@ -31,7 +31,7 @@ export default function NotFound() {
       </div>
       <div className="flex max-w-[72ch] flex-col gap-4 px-1">
         <h1 className="text-display font-semibold tracking-tight">{siteCopy.notFound.title}</h1>
-        <p className="text-muted-foreground">{siteCopy.notFound.body}</p>
+        <p className="text-small text-muted-foreground">{siteCopy.notFound.body}</p>
         <Link
           href="/"
           className={buttonVariants({

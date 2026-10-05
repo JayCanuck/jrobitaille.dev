@@ -13,9 +13,12 @@
 @source inline('lg:row-start-{1..24}');
 
 @theme {
-  /* Fluid type scale: body, labels and display sizes grow with the viewport inside fixed bounds. */
-  --text-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  /* Type scale: body is fixed at 16px with a 15px secondary step for card text; labels and display
+     sizes grow with the viewport inside fixed bounds (D14 amendment). */
+  --text-body: 1rem;
   --text-body--line-height: 1.65;
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.55;
   --text-label: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
   --text-label--line-height: 1.4;
   --text-h2: clamp(1.5rem, 1.15rem + 1.5vw, 2rem);
