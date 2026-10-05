@@ -9,7 +9,7 @@ const linkClass =
 // (D13), plus the playful slot line when it has copy (D14).
 export function SiteFooter() {
   return (
-    <footer className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 py-12 text-center font-mono text-label text-muted-foreground sm:px-6">
+    <footer className="relative z-10 flex w-full flex-col items-center gap-2 bg-background px-4 py-12 text-center font-mono text-label text-muted-foreground sm:px-6">
       <p>
         © {buildYear} {profile.name} ·{' '}
         <a href={`mailto:${profile.email}`} className={linkClass}>

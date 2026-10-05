@@ -12,7 +12,7 @@ export function SelectedWork() {
     <section
       id="work"
       aria-labelledby="work-heading"
-      className="flex flex-col gap-6 pt-16 lg:pt-24"
+      className="flex scroll-mt-14 flex-col gap-6 pt-16 lg:pt-24"
     >
       <SectionHeading id="work-heading">{siteCopy.headings.work}</SectionHeading>
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">

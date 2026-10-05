@@ -20,7 +20,10 @@ test('home renders the page layer and none of the agent-facing detail', async ({
   }
   for (const project of projects) expect(text).toContain(project.blurb);
 
-  for (const paragraph of profile.aboutLong) expect(text).not.toContain(paragraph);
+  // About reuses two of the long paragraphs verbatim; the other two never render.
+  for (const paragraph of profile.aboutLong.filter(p => !profile.about.includes(p))) {
+    expect(text).not.toContain(paragraph);
+  }
   for (const bullet of timelineNodes.flatMap(node => node.bullets)) {
     expect(text).not.toContain(bulletText(bullet));
   }

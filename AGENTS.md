@@ -44,7 +44,7 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 - **Security headers** via Cloudflare `_headers`: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
 - **Public content rules.** Every public string is checked against `.claude/rules/content.md`. Never reintroduce removed content.
 - **Design authority.** Read `DESIGN.md` before any UI change. It describes what `main` renders: tokens only (no hex in components), the palette, type scale, radii and the composition. `npm run design:lint` and the token test keep it equal to `globals.css`.
-- **Design changes ship as code.** A change to `DESIGN.md` that alters rendering ships as its own PR with before and after visual-check screenshots; a documentation PR changes no pixels.
+- **Design changes ship as code.** A change to `DESIGN.md` that alters rendering ships as its own PR; before and after visual-check runs are taken on `main` and on the branch, kept under `.visual/`, and the PR body states what differs per pair. Screenshots are never attached or committed. A documentation PR changes no pixels.
 - **Content sync.** Content mirrors the current master resume and public profile text; update both together. The page renders highlights and blurbs only; the full experience detail is kept for the agent-facing data (D12).
 
 ## Public repo

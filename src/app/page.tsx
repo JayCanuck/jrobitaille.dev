@@ -8,8 +8,9 @@ import { Skills } from '@/components/sections/skills';
 import { profile } from '@/content/resume';
 import { personJsonLd, webSiteJsonLd } from '@/lib/json-ld';
 
-// Home (D15): fixed header, full-width hero, then About and Toolbox side by side from 1024 px,
-// the card grid and the timeline, each section separated by a hairline. Server Components only.
+// Home (D15): fixed header, full-width hero over a fixed cover, then About and Toolbox side by side
+// from 1024 px, the card grid and the timeline, each section separated by a hairline. The content
+// column and the footer carry the page background above the cover layer. Server Components only.
 export default function HomePage() {
   return (
     <>
@@ -18,15 +19,17 @@ export default function HomePage() {
         <JsonLd data={personJsonLd(profile)} />
         <JsonLd data={webSiteJsonLd(profile)} />
         <Hero />
-        <div className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 sm:px-6">
-          <div className="grid gap-16 pt-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-20 lg:pt-24">
-            <About />
-            <Skills />
+        <div className="relative z-10 bg-background">
+          <div className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 sm:px-6">
+            <div className="grid gap-16 pt-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-20 lg:pt-24">
+              <About />
+              <Skills />
+            </div>
+            <hr className="mt-16 lg:mt-24" />
+            <SelectedWork />
+            <hr className="mt-16 lg:mt-24" />
+            <ExperienceTimeline />
           </div>
-          <hr className="mt-16 lg:mt-24" />
-          <SelectedWork />
-          <hr className="mt-16 lg:mt-24" />
-          <ExperienceTimeline />
         </div>
       </main>
     </>
