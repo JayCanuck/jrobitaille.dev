@@ -3,5 +3,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/components/ui/*.tsx", ".claude/hooks/*.mjs"],
-  "ignoreDependencies": ["lucide-react", "wrangler"],
+  "ignoreDependencies": ["lucide-react", "wrangler"]
 }

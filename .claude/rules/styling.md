@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/**/*.tsx"
-  - "src/**/*.css"
+  - 'src/**/*.tsx'
+  - 'src/**/*.css'
 ---
 
 # Styling rules (Tailwind v4 + shadcn)

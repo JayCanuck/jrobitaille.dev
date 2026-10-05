@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/lib/**"
-  - "src/content/**"
+  - 'src/lib/**'
+  - 'src/content/**'
 ---
 
 # Test-first for lib/ and content/
