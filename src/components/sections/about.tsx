@@ -2,13 +2,16 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { profile } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 
-// The short About (D13); the long form stays in the agent-facing data.
+// The short About (D13); the long form stays in the agent-facing data. Sits beside the Toolbox
+// from 1024 px (D15), so the section carries no width cap of its own beyond the prose measure.
 export function About() {
   return (
-    <section aria-labelledby="about-heading" className="flex max-w-[72ch] flex-col gap-5">
+    <section id="about" aria-labelledby="about-heading" className="flex flex-col gap-5">
       <SectionHeading id="about-heading">{siteCopy.headings.about}</SectionHeading>
       {profile.about.map(paragraph => (
-        <p key={paragraph}>{paragraph}</p>
+        <p key={paragraph} className="max-w-[62ch]">
+          {paragraph}
+        </p>
       ))}
     </section>
   );

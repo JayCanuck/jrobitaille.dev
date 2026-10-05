@@ -6,7 +6,7 @@ import type { Profile, SkillGroup } from '@/content/schema';
 export const profile: Profile = {
   name: 'Jason Robitaille',
   title: 'Staff Software Engineer',
-  headline: 'Full-Stack, Platform & Developer Tooling · 15+ yrs shipping web products',
+  headline: 'Full-Stack, Platform & Developer Tooling · 15+ years shipping web products',
   location: 'Mountain View, CA · remote or Bay Area',
   availability: 'Open to full-stack, platform or developer tooling roles',
   email: 'jason.aj.robitaille@gmail.com',
