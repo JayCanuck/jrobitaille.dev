@@ -4,6 +4,9 @@
 // Requires `npm run build` first; serves ./out with wrangler dev on port 8788.
 // --file some.html screenshots a local static file (a mockup) instead, with no server.
 // --browser firefox uses Firefox (npx playwright install firefox) to check the no-scroll-driven fallback.
+// --motion leaves motion on and captures the hero 0, 300 and 700 ms after load, then each section
+// 400 ms after an instant scroll to it, so the stagger and the scroll-driven reveals can be reviewed.
+// --scheme dark (or light) limits the run to one color scheme.
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -20,9 +23,15 @@ const path = opt('path') ?? '/';
 const full = args.includes('--full');
 const file = opt('file');
 const browserName = opt('browser') === 'firefox' ? 'firefox' : 'chromium';
+const motion = args.includes('--motion');
+const schemes = opt('scheme') ? [String(opt('scheme'))] : ['light', 'dark'];
+const HERO_FRAMES_MS = [0, 300, 700];
+const SECTIONS = ['about', 'work', 'experience', 'skills'];
+const SETTLE_MS = 400;
 const label =
   (opt('label') ?? accent ?? (file ? basename(String(file), '.html') : 'default')) +
-  (browserName === 'firefox' ? '-firefox' : '');
+  (browserName === 'firefox' ? '-firefox' : '') +
+  (motion ? '-motion' : '');
 const port = 8788;
 const base = `http://127.0.0.1:${port}`;
 const widths = opt('widths') ? String(opt('widths')).split(',').map(Number) : [390, 1280, 2560];
@@ -58,12 +67,12 @@ const waitFor = async (url, tries = 60) => {
 if (!file) await waitFor(base);
 const target = file ? pathToFileURL(resolve(String(file))).href : `${base}${path}`;
 const browser = await (browserName === 'firefox' ? firefox : chromium).launch();
-for (const scheme of ['light', 'dark']) {
+for (const scheme of schemes) {
   for (const width of widths) {
     const context = await browser.newContext({
       viewport: { width, height: width < 768 ? 844 : 1200 },
       colorScheme: scheme,
-      reducedMotion: 'reduce',
+      reducedMotion: motion ? 'no-preference' : 'reduce',
       deviceScaleFactor: 1
     });
     const page = await context.newPage();
@@ -75,7 +84,24 @@ for (const scheme of ['light', 'dark']) {
         });
       }, String(accent));
     }
-    await page.goto(target, { waitUntil: 'networkidle' });
+    const slug = path === '/' ? 'home' : path.replace(/\W+/g, '-');
+    const shot = async suffix => {
+      const file = join(outDir, `${slug}-${width}-${scheme}${suffix}.png`);
+      await page.screenshot({ path: file, fullPage: full && !suffix });
+      console.log(file);
+    };
+    // Motion review: hero frames timed from the load event, before anything else moves the page.
+    if (motion) {
+      await page.goto(target, { waitUntil: 'load' });
+      const loaded = Date.now();
+      for (const ms of HERO_FRAMES_MS) {
+        const wait = loaded + ms - Date.now();
+        if (wait > 0) await page.waitForTimeout(wait);
+        await shot(`-${String(ms)}ms`);
+      }
+    } else {
+      await page.goto(target, { waitUntil: 'networkidle' });
+    }
     // Walk the page so lazy images load and fonts settle before a full-page capture.
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 600) {
@@ -92,12 +118,22 @@ for (const scheme of ['light', 'dark']) {
       );
       await document.fonts.ready;
     });
-    const file = join(
-      outDir,
-      `${path === '/' ? 'home' : path.replace(/\W+/g, '-')}-${width}-${scheme}.png`
-    );
-    await page.screenshot({ path: file, fullPage: full });
-    console.log(file);
+    if (motion) {
+      // Scroll-driven reveals follow position, so each section is captured after an instant scroll.
+      for (const id of SECTIONS) {
+        const found = await page.evaluate(sectionId => {
+          const section = document.getElementById(sectionId);
+          if (!section) return false;
+          section.scrollIntoView({ behavior: 'instant', block: 'start' });
+          return true;
+        }, id);
+        if (!found) continue;
+        await page.waitForTimeout(SETTLE_MS);
+        await shot(`-${id}`);
+      }
+    } else {
+      await shot('');
+    }
     await context.close();
   }
 }

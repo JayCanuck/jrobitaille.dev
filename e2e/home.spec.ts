@@ -174,6 +174,47 @@ test('hero staggers in on load where motion is allowed', async ({ page }) => {
   await expect(h1).toHaveCSS('opacity', '1');
 });
 
+test('with motion on, nothing stays dim: the stagger settles and reveals complete', async ({
+  page
+}) => {
+  await page.goto('/', { waitUntil: 'load' });
+  // The stagger is done within 600 ms of load (D15); every hero child is fully opaque at 800 ms.
+  await page.waitForTimeout(800);
+  const dimHeroChildren = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.stagger > *'))
+      .map(element => getComputedStyle(element).opacity)
+      .filter(opacity => Number(opacity) < 1)
+  );
+  expect(dimHeroChildren).toEqual([]);
+
+  // Scroll-driven reveals finish within the first 25 to 30 % of an element's entry, so once a
+  // section has arrived nothing fully inside the viewport may still be dim. An element straddling
+  // the bottom edge is mid-reveal by design and is not counted.
+  for (const id of ['about', 'work', 'experience', 'skills']) {
+    await page.evaluate(sectionId => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, id);
+    await page.waitForTimeout(600);
+    const dim = await page.evaluate(() =>
+      Array.from(document.body.querySelectorAll('*'))
+        .filter(element => {
+          const box = element.getBoundingClientRect();
+          return (
+            box.width > 0 &&
+            box.height > 0 &&
+            box.top >= 0 &&
+            box.left >= 0 &&
+            box.bottom <= window.innerHeight &&
+            box.right <= window.innerWidth &&
+            Number(getComputedStyle(element).opacity) < 1
+          );
+        })
+        .map(element => `${element.tagName.toLowerCase()}.${element.getAttribute('class') ?? ''}`)
+    );
+    expect(dim, id).toEqual([]);
+  }
+});
+
 test('home footer is one line with the build year, email and source link', async ({ page }) => {
   await page.goto('/');
   const footer = page.getByRole('contentinfo');
