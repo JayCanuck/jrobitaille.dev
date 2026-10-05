@@ -8,15 +8,15 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 
 ## Phase 1: scaffold
 
-- [ ] `create-next-app` (TypeScript, App Router, Tailwind v4, `src/`, npm) with `output: 'export'`, `images.unoptimized`, React Compiler, Node 24 pinned
-- [ ] shadcn init on Base UI; Button, Card, Badge only
-- [ ] ESLint 9 flat config, Prettier 3 + Tailwind plugin, knip; npm scripts `dev build lint format typecheck test e2e check`
-- [ ] Vitest smoke test; Playwright + axe at 390 and 1280 px against the built output
-- [ ] `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/rules/`, `.claude/agents/reviewer.md`, hooks, `.mcp.json`
-- [ ] Placeholder home page with metadata, `robots.ts`, `sitemap.ts`
-- [ ] `wrangler.jsonc` for Workers static assets (no custom domain)
-- [ ] `ci.yml`, `deploy.yml`, Dependabot, README stub
-- [ ] First commit pushed, CI green, placeholder served at the workers.dev URL
+- [x] `create-next-app` (TypeScript, App Router, Tailwind v4, `src/`, npm) with `output: 'export'`, `images.unoptimized`, React Compiler, Node 24 pinned
+- [x] shadcn init on Base UI; Button, Card, Badge only
+- [x] ESLint 9 flat config, Prettier 3 + Tailwind plugin, knip; npm scripts `dev build lint format typecheck test e2e check`
+- [x] Vitest smoke test; Playwright + axe at 390 and 1280 px against the built output
+- [x] `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/rules/`, `.claude/agents/reviewer.md`, hooks, `.mcp.json`
+- [x] Placeholder home page with metadata, `robots.ts`, `sitemap.ts`
+- [x] `wrangler.jsonc` for Workers static assets (no custom domain)
+- [x] `ci.yml`, `deploy.yml`, Dependabot, README stub
+- [x] First commit pushed, CI green, placeholder served at the workers.dev URL
 - [ ] Claude Code GitHub workflows added; review gated on the `review` label
 - [ ] `main` protected; first PR merged through the pipeline
 
