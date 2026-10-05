@@ -6,7 +6,7 @@ paths:
 
 # Styling rules (Tailwind v4 + shadcn)
 
-- Tailwind utilities only; design tokens live in `src/styles/globals.css` under `@theme`. There is no `tailwind.config.js`.
+- `DESIGN.md` is the design authority; read it first. Tailwind utilities only; design tokens live in `src/styles/globals.css` under `@theme` and must equal the DESIGN.md front matter (unit-tested). There is no `tailwind.config.js`.
 - Dark mode follows `prefers-color-scheme` (D4). No `.dark` class, no toggle, no theme script.
 - `src/components/ui/` is shadcn-owned source: edit in place, do not wrap. Install only components that are used.
 - Base UI primitives ship client JS. When no behavior is needed, use a plain element with `cn()` or a `*Variants()` helper instead.

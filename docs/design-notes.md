@@ -1,6 +1,9 @@
+> This is the Phase 3b composition study that produced D15, kept as the evidence behind that decision.
+> `DESIGN.md` at the repo root is the current design authority and wins wherever the two differ.
+
 # Design notes: composition study for Phase 3b
 
-Pattern rules extracted from three reference sites and the previous site, measured in a browser at 1440 px (and 1000 px for the collapse) on 2026-10-05. Rules only: no CSS, markup or wording is reproduced from any site. The sites studied: Brittany Chiang (layout archetype), Josh W. Comeau (microcopy and motion restraint), Lee Robinson (density and typography), and the previous jrobitaille.dev (Gatsby, for mockup C).
+Pattern rules extracted from three reference sites and the previous site, measured in a browser at 1440 px (and 1000 px for the collapse) on 2026-10-05. Rules only: no CSS, markup or wording is reproduced from any site. The sites studied: Site A, a split-layout developer portfolio with a sticky identity column (the layout archetype); Site B, a blog-first personal site known for motion restraint (microcopy and motion restraint); Site C, a dense single-column personal site (density and typography); and the previous jrobitaille.dev (Gatsby, for mockup C).
 
 ## 1. What the Phase 3 page got wrong, in pattern terms
 
@@ -14,16 +17,16 @@ Pattern rules extracted from three reference sites and the previous site, measur
 
 | Site               | Outer frame                                                | Content columns                                                                    |
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Chiang, 1440       | 1184 px frame, 128 px side gutters                         | Left 560 px sticky (full viewport height), 16 px gap, right 607 px scrolling       |
-| Chiang, below 1024 | 48 px side gutters, 888 px single column                   | Header becomes a static block (208 px tall); main starts 96 px below it            |
-| Comeau, 1440       | 1036 px frame, 194 px side gutters                         | 627 px article column, 96 px gap, 313 px aside with chips and a ranked list        |
-| Robinson, 1440     | 1332 px frame, 48 px gutters                               | 600 px text column at the left edge, the rest given to one illustration            |
+| Site A, 1440       | 1184 px frame, 128 px side gutters                         | Left 560 px sticky (full viewport height), 16 px gap, right 607 px scrolling       |
+| Site A, below 1024 | 48 px side gutters, 888 px single column                   | Header becomes a static block (208 px tall); main starts 96 px below it            |
+| Site B, 1440       | 1036 px frame, 194 px side gutters                         | 627 px article column, 96 px gap, 313 px aside with chips and a ranked list        |
+| Site C, 1440       | 1332 px frame, 48 px gutters                               | 600 px text column at the left edge, the rest given to one illustration            |
 | Previous site      | 960 px card overlapping a full-bleed 70 vh cover by 100 px | Two equal columns at 768+ for About and Skills; timeline cards at 40 % of the card |
 
 Rules:
 
 - **Two widths, not one.** Prose lives at 600 to 630 px (about 65 to 72ch at 16 to 17 px). Everything else (identity column, rows, grids) gets a different, wider or narrower measure. The page needs at least two measures to read as composed.
-- **Split layout: 48/52 at 1440.** The identity column is slightly narrower than the content column. The split holds from 1024 (Chiang switches at `lg`, 1024 px); below it the identity column becomes a static header block.
+- **Split layout: 48/52 at 1440.** The identity column is slightly narrower than the content column. The split holds from 1024 (Site A switches at `lg`, 1024 px); below it the identity column becomes a static header block.
 - **Side gutters scale with the viewport:** 24 px on phones, 48 px from tablet, 96 to 128 px at 1440. Content never touches the viewport edge and never sits in the middle of a 2560 px canvas with nothing around it; the frame caps at about 1184 to 1332 px.
 - **Sticky column is `position: sticky; top: 0; max-height: 100vh`** with space-between so name sits at the top, nav in the middle, social links at the bottom. No JavaScript.
 
@@ -31,7 +34,7 @@ Rules:
 
 Measured distances, rounded to the 4 px grid:
 
-| Role                                | Chiang   | Comeau | Robinson | Rule for this site                              |
+| Role                                | Site A   | Site B | Site C   | Rule for this site                              |
 | ----------------------------------- | -------- | ------ | -------- | ----------------------------------------------- |
 | Frame top padding                   | 96       | 48     | 48       | 48 on phones, 96 at 1024+                       |
 | Between sections (wide)             | 144      | ~96    | ~104     | 96 at 1024+, 64 below (half of current 160)     |
@@ -54,7 +57,7 @@ Rules:
 
 ## 4. Type scale
 
-| Role                 | Chiang                              | Comeau                   | Robinson                      | Rule                                                     |
+| Role                 | Site A                              | Site B                   | Site C                        | Rule                                                     |
 | -------------------- | ----------------------------------- | ------------------------ | ----------------------------- | -------------------------------------------------------- |
 | Name (h1)            | 48/48, 700, tracking -1.2 px        | 32/48, 700               | 42/49, 600, tracking -0.85 px | 40 to 48, 600, tracking -0.02em, line-height 1.0 to 1.1  |
 | Title under the name | 20/28, 500                          |                          |                               | 20, 500, foreground                                      |
@@ -70,22 +73,22 @@ Rules:
 Rules:
 
 - **Four sizes carry the page:** display name, body, row title (same size as body, heavier), and a small uppercase label. Everything else is a colour change, not a size change.
-- **Section headings are labels, not display type.** On the split layout the nav is the section heading (Chiang hides the in-column h2 visually and keeps it for assistive tech). Below 1024 the heading returns as a small sticky uppercase label with a translucent backdrop, so the reader always knows which section they are in.
-- **Hierarchy in rows comes from weight and colour, not size:** the title is foreground at 600, the description is muted at 400, the date is muted mono. Comeau's larger 22 px row titles suit a blog, not a list of seven rows.
+- **Section headings are labels, not display type.** On the split layout the nav is the section heading (Site A hides the in-column h2 visually and keeps it for assistive tech). Below 1024 the heading returns as a small sticky uppercase label with a translucent backdrop, so the reader always knows which section they are in.
+- **Hierarchy in rows comes from weight and colour, not size:** the title is foreground at 600, the description is muted at 400, the date is muted mono. Site B's larger 22 px row titles suit a blog, not a list of seven rows.
 - **Numerals are tabular** wherever dates sit in a column.
 
 ## 5. Links presented as navigation
 
-- Chiang's nav is a vertical list of three labels, each preceded by a short horizontal rule. The rule is 32 px and dim; the active and hovered item's rule grows to 64 px and brightens, and the label brightens with it. That single affordance says "list of places on this page" without a box, underline or button.
+- Site A's nav is a vertical list of three labels, each preceded by a short horizontal rule. The rule is 32 px and dim; the active and hovered item's rule grows to 64 px and brightens, and the label brightens with it. That single affordance says "list of places on this page" without a box, underline or button.
 - Active state follows scroll position via JavaScript there. For this site the active indicator is CSS only: `:target` on the section drives the matching nav item through `:has()`, so clicking a nav link marks it, and a scroll-driven `animation-timeline: view()` on each section flips the indicator while scrolling where supported.
 - Social links are a separate icon row at the bottom of the column, 24 px icons, 20 px apart, muted, brightening on hover. They are destinations off the page; the nav items are destinations on it. Keeping the two groups in different places and different forms is the whole trick.
 - The three required links (Resume PDF, LinkedIn, GitHub) are off-page destinations, so they belong in the icon-plus-label row, not in the section nav. The section nav is About, Shipped, Where I've been, Toolbox.
-- Robinson shows the other extreme: no nav, only a 600 px column and underlined inline links with a 30 % opacity underline that darkens on hover. Good for prose links inside About; not a substitute for navigation.
-- Comeau's top bar is for a multi-page site; irrelevant to a one-page composition except for the rule that nav labels are plain words at body size, no decoration until hover.
+- Site C shows the other extreme: no nav, only a 600 px column and underlined inline links with a 30 % opacity underline that darkens on hover. Good for prose links inside About; not a substitute for navigation.
+- Site B's top bar is for a multi-page site; irrelevant to a one-page composition except for the rule that nav labels are plain words at body size, no decoration until hover.
 
 ## 6. Project rows
 
-Structure, left to right on the split layout (Chiang), measured:
+Structure, left to right on the split layout (Site A), measured:
 
 1. Thumbnail, 2 of 8 grid columns (140 x 79 px at 1440, 16:9), 1.6 px border at 10 % white, radius 4 px, nudged down 4 px to align with the title baseline. Border brightens to 30 % on row hover.
 2. Content, 6 of 8 columns: title as a link at 16/500 foreground with a small arrow glyph that moves up-right 4 px on hover; description 14/21 muted, 8 px below; chips 8 px below that.
@@ -101,31 +104,31 @@ Rules for this site:
 
 ## 7. Experience rows
 
-Chiang, measured: an 8-column grid with the date range in columns 1 to 2 (12 px uppercase, muted, top-aligned with a 4 px nudge) and the role, employer, description and chips in columns 3 to 8. Rows 48 px apart. Multiple titles at one employer are listed as muted lines under the current title, so the ladder is visible without repeating the employer.
+Site A, measured: an 8-column grid with the date range in columns 1 to 2 (12 px uppercase, muted, top-aligned with a 4 px nudge) and the role, employer, description and chips in columns 3 to 8. Rows 48 px apart. Multiple titles at one employer are listed as muted lines under the current title, so the ladder is visible without repeating the employer.
 
 Rules for this site (compact rail list):
 
 - **Mono date column left (about 7rem), employer and era right.** Dates in tabular mono at 12 px, muted.
 - **A thin vertical rail between the two columns with a 8 px dot per era** replaces the center-rail timeline. The rail is a 1 px line in the border colour; dots are the accent.
-- **Title ladder as small mono labels** on the first era where the title changes (the labelled non-heading element from D13 stays), not as a heading. Chiang's "ladder under the title" is the same idea in a different place.
+- **Title ladder as small mono labels** on the first era where the title changes (the labelled non-heading element from D13 stays), not as a heading. Site A's "ladder under the title" is the same idea in a different place.
 - **Employer is an h3 once per block; eras are h4 at body size, 600.** Era descriptor and one or two highlights at 14 to 15 px muted below.
 - **Rows are 24 px apart inside a block and 40 px between blocks.** No cards, no borders. The rail carries the structure.
 - **Proof link is a chip at the end of the era, same chip as the project rows.**
 
 ## 8. Hover behaviour
 
-- **Rows:** backdrop fade (150 ms), sibling dim to 50 % (Chiang) or title colour change only (Robinson). Both are restrained; pick one. The backdrop is better for a row that is a single link because it shows the hit area.
-- **Text links:** Comeau underlines on hover with a 2 px accent underline offset 2 px; Robinson underlines always at 30 % opacity and darkens on hover. For inline links in prose: always underlined with a muted underline, accent on hover.
+- **Rows:** backdrop fade (150 ms), sibling dim to 50 % (Site A) or title colour change only (Site C). Both are restrained; pick one. The backdrop is better for a row that is a single link because it shows the hit area.
+- **Text links:** Site B underlines on hover with a 2 px accent underline offset 2 px; Site C underlines always at 30 % opacity and darkens on hover. For inline links in prose: always underlined with a muted underline, accent on hover.
 - **Icons:** colour change only (muted to foreground), no movement.
-- **Arrows and glyphs:** a 4 px nudge up-right on hover is the one allowed movement on links (Chiang) and Comeau's "read more" arrow is a fading chevron trail. One such glyph per row, never more.
-- **Thumbnails:** border brightens; no scale, no lift. (The previous site lifted project images 5 px; Comeau lifts cards 5 px. Both are fine at card scale; wrong at a 160 px thumbnail.)
-- **Transitions:** 150 to 200 ms, ease-out, and every transition is inside `prefers-reduced-motion: no-preference` (Comeau wraps every single one).
+- **Arrows and glyphs:** a 4 px nudge up-right on hover is the one allowed movement on links (Site A) and Site B's "read more" arrow is a fading chevron trail. One such glyph per row, never more.
+- **Thumbnails:** border brightens; no scale, no lift. (The previous site lifted project images 5 px; Site B lifts cards 5 px. Both are fine at card scale; wrong at a 160 px thumbnail.)
+- **Transitions:** 150 to 200 ms, ease-out, and every transition is inside `prefers-reduced-motion: no-preference` (Site B wraps every single one).
 
 ## 9. Personality without gimmick
 
-- **Comeau:** the wordmark has a small drawn flourish; a sound toggle exists but defaults off; the hero is generative art that the reader can regenerate; titles carry the occasional emoji. The page itself is dense, calm and restrained; the fun is in one or two places the reader chooses to touch.
-- **Chiang:** a cursor spotlight gradient on dark (subtle), a game reference in the About prose, and a footer that names the tools and typeface in one sentence. Nothing moves unless the reader hovers.
-- **Robinson:** no flourish at all; the personality is in the prose (family, music) and one large illustration beside the text. A bio length toggle is the single interactive element.
+- **Site B:** the wordmark has a small drawn flourish; a sound toggle exists but defaults off; the hero is generative art that the reader can regenerate; titles carry the occasional emoji. The page itself is dense, calm and restrained; the fun is in one or two places the reader chooses to touch.
+- **Site A:** a cursor spotlight gradient on dark (subtle), and a footer that names the tools and typeface in one sentence. Nothing moves unless the reader hovers.
+- **Site C:** no flourish at all; the personality is in the prose and one large illustration beside the text. A bio length toggle is the single interactive element.
 - **Previous site:** the cover photo, the "Hi! I'm Jason!" hero line, the UFO and cow 404, a Konami egg.
 
 Rules for this site:
@@ -137,8 +140,8 @@ Rules for this site:
 
 ## 10. Motion restraint
 
-- Comeau: every animated property is wrapped in a reduced-motion query; hover motions are 5 px or less; scroll-in reveals are opt-in per article (`data-include-enter-animation`), default off.
-- Chiang: the only scroll-linked motion is the nav indicator; rows fade in once on first paint, not on scroll.
+- Site B: every animated property is wrapped in a reduced-motion query; hover motions are 5 px or less; scroll-in reveals are opt-in per article (`data-include-enter-animation`), default off.
+- Site A: the only scroll-linked motion is the nav indicator; rows fade in once on first paint, not on scroll.
 - Rule: scroll-driven reveal, if kept, starts at opacity 0.4 and rises 8 px at most, finishes within the first 25 % of the element entering the viewport, and runs only inside `@supports (animation-timeline: view())` and `prefers-reduced-motion: no-preference`. Content is always readable at every scroll position.
 
 ## 11. The previous site's skeleton (for mockup C)

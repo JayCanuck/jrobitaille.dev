@@ -10,16 +10,17 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 
 ## Stack
 
-| Layer     | Choice                                                                             |
-| --------- | ---------------------------------------------------------------------------------- |
-| Framework | Next.js 16 App Router, `output: 'export'`, React Compiler on                       |
-| Language  | TypeScript strict with `noUncheckedIndexedAccess`                                  |
-| Styling   | Tailwind CSS v4, CSS-first `@theme` in `src/styles/globals.css`; shadcn on Base UI |
-| Content   | `src/content/*.ts` typed with zod, validated by a Vitest test (Phase 2)            |
-| Tests     | Vitest (unit), Playwright + axe (e2e, 390 and 1280 px)                             |
-| Quality   | ESLint 9 flat config, Prettier 3 + Tailwind plugin, knip                           |
-| Hosting   | Cloudflare Workers static assets, `wrangler.jsonc`, GitHub Actions deploy          |
-| Runtime   | Node 24 (`.nvmrc`), npm                                                            |
+| Layer     | Choice                                                                                 |
+| --------- | -------------------------------------------------------------------------------------- |
+| Framework | Next.js 16 App Router, `output: 'export'`, React Compiler on                           |
+| Language  | TypeScript strict with `noUncheckedIndexedAccess`                                      |
+| Styling   | Tailwind CSS v4, CSS-first `@theme` in `src/styles/globals.css`; shadcn on Base UI     |
+| Design    | `DESIGN.md` at the root is the design authority (D16); its tokens mirror `globals.css` |
+| Content   | `src/content/*.ts` typed with zod, validated by a Vitest test (Phase 2)                |
+| Tests     | Vitest (unit), Playwright + axe (e2e, 390 and 1280 px)                                 |
+| Quality   | ESLint 9 flat config, Prettier 3 + Tailwind plugin, knip                               |
+| Hosting   | Cloudflare Workers static assets, `wrangler.jsonc`, GitHub Actions deploy              |
+| Runtime   | Node 24 (`.nvmrc`), npm                                                                |
 
 ## Commands
 
@@ -42,6 +43,8 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 - **Performance budget.** Initial JS under 150 KB gzipped on home for evergreen browsers (the Next and React runtime is 143.8 KB of that; site code is a few KB, the cost of choosing Next over a zero-JS framework for its hiring signal, D1 and D14); LCP under 2.0 s on throttled 4G (the mobile LCP element is the About paragraph; Lighthouse's simulated score is a known text-LCP artifact, D14). Lazy islands must not move LCP or CLS.
 - **Security headers** via Cloudflare `_headers`: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
 - **Public content rules.** Every public string is checked against `.claude/rules/content.md`. Never reintroduce removed content.
+- **Design authority.** Read `DESIGN.md` before any UI change. It describes what `main` renders: tokens only (no hex in components), the palette, type scale, radii and the composition. `npm run design:lint` and the token test keep it equal to `globals.css`.
+- **Design changes ship as code.** A change to `DESIGN.md` that alters rendering ships as its own PR with before and after visual-check screenshots; a documentation PR changes no pixels.
 - **Content sync.** Content mirrors the current master resume and public profile text; update both together. The page renders highlights and blurbs only; the full experience detail is kept for the agent-facing data (D12).
 
 ## Public repo
@@ -70,7 +73,7 @@ Plan (plan mode), implement with tests first for `lib/` and `content/`, `npm run
 
 ## Where things are
 
-- `docs/SPEC.md` what and why, `docs/DECISIONS.md` D1 onward, `docs/PLAN.md` phase checklist.
+- `DESIGN.md` design tokens and rules (D16); `docs/SPEC.md` what and why, `docs/DECISIONS.md` D1 onward, `docs/PLAN.md` phase checklist.
 - `.claude/rules/` path-scoped rules, `.claude/agents/` subagents, `.claude/settings.json` hooks, `.mcp.json` MCP servers.
 
 <!-- BEGIN:nextjs-agent-rules -->

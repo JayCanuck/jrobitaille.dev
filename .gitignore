@@ -58,3 +58,4 @@ content-guard.local.json
 # lighthouse ci
 .lighthouseci/
 .playwright-mcp/
+.claude/settings.local.json
