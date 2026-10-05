@@ -1,5 +1,3 @@
-import { chipClass } from '@/components/ui/chip';
-import type { Link } from '@/content/schema';
 import type { TimelineSide } from '@/lib/timeline';
 
 interface TimelineNodeProps {
@@ -7,12 +5,12 @@ interface TimelineNodeProps {
   years: string;
   desc: string;
   highlights: string[];
-  link?: Link;
   side: TimelineSide;
 }
 
-// One era card: name (h4), years in mono, descriptor, one or two highlights, proof chip if public.
-// Highlights are the page layer; the full experience detail stays in the agent-facing data (D12).
+// One era card: name (h4), years in mono, descriptor, one or two highlights. No links: the cards
+// carry the proof, the timeline carries the chronology (D15 amendment). Highlights are the page
+// layer; the full experience detail and the era's proof link stay in the agent-facing data (D12).
 // A 1 px hairline in the rail's colour runs from the card's rail-facing edge to its year badge,
 // level with the badge's centre: from the left edge on the single rail (badge 48 px, 16 px gap),
 // and from the edge `side` names on the centre rail (badge 56 px, 24 px gap). It is a pseudo-element
@@ -20,7 +18,7 @@ interface TimelineNodeProps {
 const connector =
   "before:absolute before:top-[23px] before:right-[calc(100%+1px)] before:h-px before:w-4 before:bg-border before:content-[''] lg:before:top-[27px] lg:before:w-6 lg:data-[side=left]:before:right-auto lg:data-[side=left]:before:left-[calc(100%+1px)]";
 
-export function TimelineNode({ name, years, desc, highlights, link, side }: TimelineNodeProps) {
+export function TimelineNode({ name, years, desc, highlights, side }: TimelineNodeProps) {
   return (
     <div
       data-side={side}
@@ -36,11 +34,6 @@ export function TimelineNode({ name, years, desc, highlights, link, side }: Time
           <li key={highlight}>{highlight}</li>
         ))}
       </ul>
-      {link && (
-        <a href={link.href} rel="noopener noreferrer" className={`${chipClass} w-fit`}>
-          {link.label}
-        </a>
-      )}
     </div>
   );
 }
