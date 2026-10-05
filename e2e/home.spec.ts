@@ -30,6 +30,30 @@ test('home renders the hero links', async ({ page }) => {
   ).toHaveCount(0);
 });
 
+test('the avatar overlaps the cover band and is never clipped or painted over', async ({
+  page
+}) => {
+  await page.goto('/');
+  const avatar = page.getByRole('img', { name: 'Jason Robitaille' });
+  for (const width of [390, 1024, 1440]) {
+    await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
+    const box = await avatar.boundingBox();
+    if (!box) throw new Error('avatar has no box');
+    expect(box.x, `${String(width)}: left`).toBeGreaterThanOrEqual(0);
+    expect(box.y, `${String(width)}: top`).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, `${String(width)}: right`).toBeLessThanOrEqual(width);
+    expect(box.y + box.height, `${String(width)}: bottom`).toBeLessThanOrEqual(
+      width < 768 ? 844 : 900
+    );
+    // The topmost element at the avatar's centre is the avatar itself, not the band behind it.
+    const hit = await page.evaluate(
+      point => document.elementFromPoint(point.x, point.y)?.getAttribute('alt') ?? null,
+      { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+    );
+    expect(hit, `${String(width)}: element at centre`).toBe('Jason Robitaille');
+  }
+});
+
 test('home has a slim header with the name, section links and the resume', async ({ page }) => {
   await page.goto('/');
   const header = page.getByRole('banner');

@@ -17,7 +17,7 @@ interface EraView {
 
 type Item =
   | { kind: 'employer'; key: string; heading: string }
-  | { kind: 'title'; key: string; rail: string }
+  | { kind: 'title'; key: string; rail: string; single: boolean }
   | { kind: 'era'; key: string; era: EraView };
 
 // One flat list in page order: employer heading, title rung, era nodes (D13, D14), the earlier
@@ -25,12 +25,17 @@ type Item =
 const items: Item[] = [
   { kind: 'employer', key: 'LG', heading: `${employer.name}, ${employer.years}` },
   ...employer.titles.flatMap(title => [
-    { kind: 'title', key: `${title.rail}-LG`, rail: title.rail } as const,
+    {
+      kind: 'title',
+      key: `${title.rail}-LG`,
+      rail: title.rail,
+      single: title.eras.length === 1
+    } as const,
     ...title.eras.map(era => ({ kind: 'era', key: era.id, era }) as const)
   ]),
   ...earlier.flatMap(role => [
     { kind: 'employer', key: role.id, heading: role.org } as const,
-    { kind: 'title', key: `${role.rail}-${role.id}`, rail: role.rail } as const,
+    { kind: 'title', key: `${role.rail}-${role.id}`, rail: role.rail, single: true } as const,
     {
       kind: 'era',
       key: `${role.id}-era`,
@@ -76,8 +81,13 @@ export function ExperienceTimeline() {
             );
           }
           if (item.kind === 'title') {
+            // A rung with a single era sits a third closer to its neighbours; the negative margins
+            // shrink the row the label occupies without touching the alternation.
             return (
-              <li key={item.key} className={cn(labelClass, rowClass)}>
+              <li
+                key={item.key}
+                className={cn(labelClass, rowClass, item.single && '-my-2 lg:-my-[0.667rem]')}
+              >
                 <p
                   data-rail
                   className={cn(
