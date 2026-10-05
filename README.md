@@ -33,21 +33,21 @@ What was deliberately not done: scheduled model runs, model-driven hooks, agent 
 
 ## Repository map
 
-| Path                      | Why it exists                                                              |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `AGENTS.md` / `CLAUDE.md` | Agent instructions (open standard) and the Claude import of it             |
-| `docs/`                   | `SPEC.md` what and why, `DECISIONS.md` D1 to D8, `PLAN.md` phase checklist |
-| `.claude/`                | Path-scoped rules, subagents, hooks, hook scripts                          |
-| `.mcp.json`               | MCP servers used during development: Playwright and Chrome DevTools        |
-| `src/app/`                | Routes, metadata, `robots.ts`, `sitemap.ts`                                |
-| `src/components/ui/`      | shadcn-installed primitives (owned source)                                 |
-| `src/lib/`                | Pure helpers and `site.ts`, the single source of site identity             |
-| `src/styles/globals.css`  | Tailwind v4 theme tokens                                                   |
-| `e2e/`                    | Playwright + axe tests                                                     |
-| `package.json`            | Scripts (`check` runs every gate), Node 24 pin via `engines`               |
-| `components.json`         | shadcn CLI config: Base UI, Nova preset, `src/` aliases                    |
-| `wrangler.jsonc`          | Cloudflare Workers static-assets config (custom domain added in Phase 5)   |
-| `.github/`                | `ci.yml` gates, `deploy.yml` to Workers, `dependabot.yml`                  |
+| Path                      | Why it exists                                                               |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `AGENTS.md` / `CLAUDE.md` | Agent instructions (open standard) and the Claude import of it              |
+| `docs/`                   | `SPEC.md` what and why, `DECISIONS.md` D1 onward, `PLAN.md` phase checklist |
+| `.claude/`                | Path-scoped rules, subagents, hooks, hook scripts                           |
+| `.mcp.json`               | MCP servers used during development: Playwright and Chrome DevTools         |
+| `src/app/`                | Routes, metadata, `robots.ts`, `sitemap.ts`                                 |
+| `src/components/ui/`      | shadcn-installed primitives (owned source)                                  |
+| `src/lib/`                | Pure helpers and `site.ts`, the single source of site identity              |
+| `src/styles/globals.css`  | Tailwind v4 theme tokens                                                    |
+| `e2e/`                    | Playwright + axe tests                                                      |
+| `package.json`            | Scripts (`check` runs every gate), Node 24 pin via `engines`                |
+| `components.json`         | shadcn CLI config: Base UI, Nova preset, `src/` aliases                     |
+| `wrangler.jsonc`          | Cloudflare Workers static-assets config (custom domain added in Phase 5)    |
+| `.github/`                | `ci.yml` gates, `deploy.yml` to Workers, `dependabot.yml`                   |
 
 ## License
 

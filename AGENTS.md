@@ -65,7 +65,7 @@ Plan (plan mode), implement with tests first for `lib/` and `content/`, `npm run
 
 ## Where things are
 
-- `docs/SPEC.md` what and why, `docs/DECISIONS.md` D1 to D8, `docs/PLAN.md` phase checklist.
+- `docs/SPEC.md` what and why, `docs/DECISIONS.md` D1 onward, `docs/PLAN.md` phase checklist.
 - `.claude/rules/` path-scoped rules, `.claude/agents/` subagents, `.claude/settings.json` hooks, `.mcp.json` MCP servers.
 
 <!-- BEGIN:nextjs-agent-rules -->

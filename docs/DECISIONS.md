@@ -1,6 +1,6 @@
 # Decisions
 
-ADR-lite. D1 to D3 are locked; D4 to D8 are defaults that cost one edit to change. Add a new entry rather than rewriting an old one.
+ADR-lite. D1 to D3 are locked; D4 onward are defaults that cost one edit to change. Add a new entry rather than rewriting an old one.
 
 ## D1: Framework is Next.js 16 static export
 
@@ -51,3 +51,10 @@ ADR-lite. D1 to D3 are locked; D4 to D8 are defaults that cost one edit to chang
 
 - **Date:** 2026-10-04 · **Status:** default
 - **Why:** Already the public address on the GitHub profile; one address everywhere.
+
+## D9: Toolchain currency: ESLint 10, TypeScript 6, tsgo shadow job, Dependabot pins
+
+- **Date:** 2026-10-04 · **Status:** default
+- **Context:** ESLint 10 is current, but eslint-plugin-jsx-a11y, eslint-plugin-react and eslint-plugin-import still declare peer ranges that stop at 9 and call context APIs that 10 removed. TypeScript 7 (the native compiler) ships without the JavaScript compiler API until 7.1, which typescript-eslint and `next build` type-checking need.
+- **Decision:** ESLint 10 with eslint-config-next 16 as the base, since it declares `eslint >=9` and bundles the plugins; no direct jsx-a11y dependency, its strict rule set is layered on from the bundled instance, and the bundled react, import and jsx-a11y rules are wrapped with `@eslint/compat` `fixupPluginRules` until they support 10 natively. TypeScript 6.0 as the bridge release. A non-blocking CI job runs the TypeScript 7 native compiler on every PR as stage one of a staged migration. Dependabot groups minor and patch npm updates into one weekly PR and ignores major updates for `typescript` (until 7.1 plus typescript-eslint support) and `@types/node` (tracks the pinned Node major).
+- **Consequences:** The fixup block in `eslint.config.mjs` is deleted once the plugins catch up. When 7.1 lands, the shadow job becomes the blocking typecheck and the Dependabot ignore for `typescript` goes. `@types/node` moves with `.nvmrc`.

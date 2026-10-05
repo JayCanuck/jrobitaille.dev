@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/content/**"
-  - "src/app/**"
+  - 'src/content/**'
+  - 'src/app/**'
 ---
 
 # Content and claims discipline

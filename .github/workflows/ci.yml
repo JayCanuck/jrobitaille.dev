@@ -33,3 +33,19 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Stage one of the TypeScript 7 migration: native-compiler diagnostics on every PR without gating merges.
+  # typescript@7 publishes the native compiler as `tsc`; the `tsgo` binary name lives in @typescript/native-preview.
+  typecheck-tsgo:
+    name: typecheck (tsgo preview)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx next typegen
+      - run: npx -y -p typescript@7 tsc --noEmit

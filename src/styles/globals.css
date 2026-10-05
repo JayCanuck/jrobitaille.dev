@@ -1,7 +1,7 @@
 /* Design tokens and Tailwind v4 theme (CSS-first, no tailwind.config); shadcn Nova preset, tuned in Phase 3 (spec §4, §5). */
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @theme inline {
   --color-background: var(--background);

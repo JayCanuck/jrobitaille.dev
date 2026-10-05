@@ -1,4 +1,4 @@
-# Dependabot: weekly npm and GitHub Actions updates (D3); minor and patch bumps arrive as one grouped PR.
+# Dependabot: weekly npm and GitHub Actions updates (D3). Minor and patch npm bumps arrive as one grouped PR; see D9 for the pinned majors.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -8,7 +8,15 @@ updates:
       day: monday
     groups:
       minor-and-patch:
+        patterns: ['*']
         update-types: [minor, patch]
+    ignore:
+      # Unblock when TypeScript 7.1 ships the JS compiler API and typescript-eslint supports it.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # Tracks the pinned Node major (.nvmrc, engines).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
