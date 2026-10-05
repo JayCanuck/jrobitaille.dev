@@ -6,10 +6,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { profile } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 
-// Slim fixed header (D15): name left, section links and the resume right, on a solid background.
-// Where scroll-driven animation is supported and motion is wanted it fades in as the hero scrolls
-// out, opacity only, so it stays in the tab order and shows itself on focus; otherwise it is
-// simply visible. The section links hide below 768 px, where the page is short enough to scroll.
+// Slim fixed header (D15): name left, section links and the resume right, on a solid background,
+// the section links at the small pill's own 28 px height so they centre on one line. Where motion is wanted it fades in once the
+// hero has fully scrolled out (a 200 ms threshold fade where animation triggers exist, a short
+// scroll-linked fade where only scroll-driven animation does), opacity only, so it stays in the tab
+// order and shows itself on focus; otherwise it is simply visible. The section links hide below
+// 768 px, where the page is short enough to scroll.
 const sections = [
   { id: 'about', label: siteCopy.headings.about },
   { id: 'work', label: siteCopy.headings.work },
@@ -30,10 +32,10 @@ export function SiteHeader() {
         <nav aria-label="Sections" className="ml-auto hidden md:block">
           <ul className="flex gap-5">
             {sections.map(section => (
-              <li key={section.id}>
+              <li key={section.id} className="flex">
                 <a
                   href={`#${section.id}`}
-                  className="rounded-sm font-mono text-label font-medium tracking-wider text-muted-foreground uppercase hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="flex h-7 items-center rounded-sm font-mono text-label font-medium tracking-wider text-muted-foreground uppercase hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   {section.label}
                 </a>

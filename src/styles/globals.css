@@ -160,8 +160,9 @@
   }
   body {
     @apply bg-background text-body text-foreground;
-    /* The hero publishes a view timeline the fixed header fades in against (D15). */
+    /* The hero publishes a view timeline and a trigger the fixed header fades in against (D15). */
     timeline-scope: --hero;
+    trigger-scope: --hero-gone;
   }
   ::selection {
     background: var(--brand-soft);
@@ -170,7 +171,7 @@
 
 /* Motion is texture, not a show (D14, D15). A load-time stagger on the hero; scroll-driven reveals
    that never start below 0.4 opacity or move more than 24 px; the header fade keyed to the hero's
-   view timeline. Everything sits inside prefers-reduced-motion: no-preference and, for the
+   exit, as a threshold where triggers exist and scroll-linked where they do not. Everything sits inside prefers-reduced-motion: no-preference and, for the
    scroll-driven effects, @supports. Without either, every element is simply visible and static. */
 @keyframes hero-in {
   from {
@@ -236,15 +237,6 @@
   to {
     opacity: 1;
     pointer-events: auto;
-  }
-}
-
-@keyframes parallax {
-  from {
-    transform: translateY(-6%) scale(1.08);
-  }
-  to {
-    transform: translateY(6%) scale(1.08);
   }
 }
 
@@ -319,21 +311,32 @@
         animation-timeline: view();
         animation-range: entry 0% entry 30%;
       }
-      .parallax {
-        animation: parallax linear both;
-        animation-timeline: scroll();
-        animation-range: 0 60vh;
-      }
       .hero-timeline {
         view-timeline: --hero block;
       }
+      /* Scroll-linked fallback: the header fades over the last 15% of the hero's exit. */
       .header-fade {
         animation: header-in linear both;
         animation-timeline: --hero;
-        animation-range: exit 40% exit 100%;
+        animation-range: exit 85% exit 100%;
       }
       .header-fade:focus-within {
         animation: none;
+      }
+    }
+    /* Threshold: where animation triggers exist, a 200 ms fade plays once the hero has fully left
+       and plays backwards when it returns. The activation range is open-ended past the exit (a
+       finite end would deactivate it again on a long page); a nav click to the first section lands
+       with the hero already out, since that section starts 64 px below it. */
+    @supports (animation-trigger: --hero-gone play-forwards play-backwards) {
+      .hero-timeline {
+        timeline-trigger: --hero-gone view() exit 100% exit 100000%;
+      }
+      .header-fade {
+        animation: header-in 200ms ease-out both;
+        animation-timeline: auto;
+        animation-range: normal;
+        animation-trigger: --hero-gone play-forwards play-backwards;
       }
     }
   }

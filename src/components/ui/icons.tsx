@@ -2,8 +2,11 @@ import type { SVGProps } from 'react';
 
 // The two brand marks lucide no longer ships. Plain inline SVGs in lucide's stroke style so they
 // sit beside its FileText in the hero; decorative, the link text carries the name.
+// Both glyphs' ink runs from y 2 to 22 of the 24-unit box once the LinkedIn shapes are moved down
+// half a unit, so the two ink centres match; the viewBox then starts half a unit above zero, which
+// drops both glyphs 0.4 px so their ink centres sit on the label's x-height rather than the line box.
 const base: SVGProps<SVGSVGElement> = {
-  viewBox: '0 0 24 24',
+  viewBox: '0 -0.5 24 24',
   fill: 'none',
   stroke: 'currentColor',
   strokeWidth: 1.75,
@@ -24,9 +27,9 @@ export function GithubIcon(props: SVGProps<SVGSVGElement>) {
 export function LinkedinIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base} {...props}>
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect width="4" height="12" x="2" y="9" />
-      <circle cx="4" cy="4" r="2" />
+      <path d="M16 8.5a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect width="4" height="12" x="2" y="9.5" />
+      <circle cx="4" cy="4.5" r="2" />
     </svg>
   );
 }

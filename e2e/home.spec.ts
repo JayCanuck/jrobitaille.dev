@@ -1,6 +1,6 @@
 // Home page structure, composition and accessibility (D13, D15): axe clean is a CI gate (spec §6).
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 import { projects } from '../src/content/projects';
 import { siteCopy } from '../src/content/site';
@@ -130,7 +130,8 @@ test('project cards are clickable as a whole, secondary links stay separate', as
     'href',
     first.secondaryLink.href
   );
-  await expect(card.getByRole('link')).toHaveCount(2);
+  // Title, primary chip and secondary chip are three anchors; the first two share a destination.
+  await expect(card.getByRole('link')).toHaveCount(3);
 });
 
 test('timeline cards alternate and interleave on the centre rail from 1024 px', async ({
@@ -191,10 +192,14 @@ test('with motion on, nothing stays dim: the stagger settles and reveals complet
   // section has arrived nothing fully inside the viewport may still be dim. An element straddling
   // the bottom edge is mid-reveal by design and is not counted.
   for (const id of ['about', 'work', 'experience', 'skills']) {
-    await page.evaluate(sectionId => {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    const top = await page.evaluate(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (!section) return 0;
+      const margin = parseFloat(getComputedStyle(section).scrollMarginTop);
+      return window.scrollY + section.getBoundingClientRect().top - margin;
     }, id);
-    await page.waitForTimeout(600);
+    await scrollSmoothlyTo(page, top);
+    await page.waitForTimeout(200);
     const dim = await page.evaluate(() =>
       Array.from(document.body.querySelectorAll('*'))
         .filter(element => {
@@ -234,6 +239,268 @@ test('home footer is one line with the build year, email and source link', async
   );
 });
 
+// Live review 1 (D15 amendment): alignment, header threshold, anchor offsets, chips, connectors.
+
+// Scroll the way a user does (smoothly, over several frames) and wait until the position settles
+// plus the 200 ms header fade: an animation trigger only registers a boundary crossed between
+// frames, never a single instant jump.
+const scrollSmoothlyTo = async (page: Page, y: number) => {
+  await page.evaluate(v => {
+    window.scrollTo({ top: v, behavior: 'smooth' });
+  }, y);
+  let previous = -1;
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(100);
+    const current = await page.evaluate(() => window.scrollY);
+    if (current === previous) break;
+    previous = current;
+  }
+  await page.waitForTimeout(400);
+};
+
+test('the resume pill and its neighbours share one vertical centre in the hero and the header', async ({
+  page
+}) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  // Read every box in one frame; poll briefly so the hero stagger has settled.
+  const measure = () =>
+    page.evaluate(() => {
+      const centre = (el: Element) => {
+        const box = el.getBoundingClientRect();
+        return box.top + box.height / 2;
+      };
+      const links = (root: Element | null) =>
+        Array.from(root?.querySelectorAll('a') ?? []).map(a => ({
+          name: a.textContent.trim(),
+          centre: centre(a)
+        }));
+      return {
+        hero: links(document.querySelector('section.hero-timeline ul')),
+        header: links(document.querySelector('header'))
+      };
+    });
+  let rows = await measure();
+  for (let i = 0; i < 10; i++) {
+    const spread = (row: { centre: number }[]) =>
+      Math.max(...row.map(l => l.centre)) - Math.min(...row.map(l => l.centre));
+    if (spread(rows.hero) <= 1) break;
+    await page.waitForTimeout(150);
+    rows = await measure();
+  }
+  const check = (row: { name: string; centre: number }[], label: string) => {
+    const pill = row.find(link => link.name === 'Resume (PDF)');
+    if (!pill) throw new Error(`${label}: no resume pill`);
+    for (const link of row) {
+      expect(Math.abs(link.centre - pill.centre), `${label} ${link.name}`).toBeLessThanOrEqual(1);
+    }
+  };
+  expect(rows.hero.map(link => link.name)).toEqual(['Resume (PDF)', 'LinkedIn', 'GitHub']);
+  check(rows.hero, 'hero');
+  // The pill keeps the lg button size's own height (h-9, 36 px); the links match it, not the reverse.
+  const pillHeight = await page.evaluate(
+    () => document.querySelector('section.hero-timeline ul a')?.getBoundingClientRect().height
+  );
+  expect(pillHeight).toBe(36);
+  if (viewportWidth() >= 768) {
+    expect(rows.header.length).toBe(6);
+    check(
+      rows.header.filter(link => link.name !== 'Jason Robitaille'),
+      'header'
+    );
+  }
+});
+
+test('the hero link icons share one ink centre and sit on the label x-height', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(800);
+  const icons = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('section.hero-timeline ul a'))
+      .slice(1)
+      .map(a => {
+        const svg = a.querySelector('svg');
+        if (!svg) throw new Error('no icon');
+        const strokeHalf =
+          ((Number(svg.getAttribute('stroke-width')) / 24) * svg.getBoundingClientRect().height) /
+          2;
+        let top = Infinity;
+        let bottom = -Infinity;
+        for (const shape of svg.querySelectorAll('path, rect, circle')) {
+          const box = shape.getBoundingClientRect();
+          top = Math.min(top, box.top - strokeHalf);
+          bottom = Math.max(bottom, box.bottom + strokeHalf);
+        }
+        const text = Array.from(a.childNodes).find(
+          node => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim() !== ''
+        );
+        if (!text) throw new Error('no label');
+        const range = document.createRange();
+        range.selectNodeContents(text);
+        const label = range.getBoundingClientRect();
+        const style = getComputedStyle(a);
+        const context = document.createElement('canvas').getContext('2d');
+        if (!context) throw new Error('no canvas');
+        context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const metrics = context.measureText('x');
+        const xCentre =
+          label.top + metrics.fontBoundingBoxAscent - metrics.actualBoundingBoxAscent / 2;
+        return { name: a.textContent.trim(), inkCentre: (top + bottom) / 2, xCentre };
+      })
+  );
+  expect(icons.map(icon => icon.name)).toEqual(['LinkedIn', 'GitHub']);
+  const [linkedin, github] = icons;
+  if (!linkedin || !github) throw new Error('icons missing');
+  expect(Math.abs(linkedin.inkCentre - github.inkCentre)).toBeLessThanOrEqual(1);
+  for (const icon of icons) {
+    expect(Math.abs(icon.inkCentre - icon.xCentre), icon.name).toBeLessThanOrEqual(1);
+  }
+});
+
+test('with motion on, the header is hidden over the hero and shown once it has left, never in between', async ({
+  page
+}) => {
+  await page.goto('/');
+  const header = page.getByRole('banner');
+  const heroHeight = await page.evaluate(
+    () => document.querySelector('section.hero-timeline')?.getBoundingClientRect().height ?? 0
+  );
+  expect(heroHeight).toBeGreaterThan(0);
+  const settleAt = async (y: number) => {
+    await scrollSmoothlyTo(page, y);
+    return Number(await header.evaluate(el => getComputedStyle(el).opacity));
+  };
+  expect(await settleAt(0)).toBe(0);
+  expect(await settleAt(heroHeight + 10)).toBe(1);
+  // Any part of the hero still in view keeps the header hidden.
+  expect(await settleAt(heroHeight - 40)).toBe(0);
+  for (const y of [heroHeight * 0.5, heroHeight * 0.9, heroHeight * 2, 0, heroHeight + 40]) {
+    const opacity = await settleAt(y);
+    expect(opacity < 0.05 || opacity > 0.95, `opacity ${String(opacity)} at ${String(y)}`).toBe(
+      true
+    );
+  }
+});
+
+test('header links land each heading below the header', async ({ page }) => {
+  test.skip(viewportWidth() < 768, 'the section links are hidden below 768 px');
+  await page.goto('/');
+  const header = page.getByRole('banner');
+  // The header is hidden (and inert to the pointer) over the hero; scroll past it first.
+  await page.evaluate(() => {
+    window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'instant' });
+  });
+  await page.waitForTimeout(400);
+  for (const link of await header.getByRole('navigation').getByRole('link').all()) {
+    const id = (await link.getAttribute('href'))?.slice(1) ?? '';
+    await link.click();
+    let previous = -1;
+    for (let i = 0; i < 20; i++) {
+      await page.waitForTimeout(150);
+      const current = await page.evaluate(() => window.scrollY);
+      if (current === previous) break;
+      previous = current;
+    }
+    const headingTop = await page.evaluate(
+      sectionId =>
+        document.querySelector(`#${sectionId} h2`)?.getBoundingClientRect().top ?? Number.NaN,
+      id
+    );
+    const headerBottom = (await header.boundingBox())?.height ?? Number.NaN;
+    expect(headingTop, id).toBeGreaterThanOrEqual(headerBottom);
+  }
+});
+
+test('chips never clip their text at device scale 1 and 1.25', async ({ browser, baseURL }) => {
+  for (const scale of [1, 1.25]) {
+    for (const width of [390, 1440, 2048]) {
+      const context = await browser.newContext({
+        viewport: { width, height: width < 768 ? 844 : 1000 },
+        deviceScaleFactor: scale
+      });
+      const page = await context.newPage();
+      await page.goto(baseURL ?? '/');
+      await page.evaluate(() =>
+        document.getElementById('skills')?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      );
+      await page.waitForTimeout(300);
+      const clipped = await page.evaluate(() => {
+        const chips = Array.from(
+          document.querySelectorAll<HTMLElement>('#skills li, a[class*="bg-brand-soft"]')
+        );
+        return chips
+          .filter(chip => {
+            const box = chip.getBoundingClientRect();
+            const range = document.createRange();
+            range.selectNodeContents(chip);
+            const text = range.getBoundingClientRect();
+            return (
+              chip.scrollHeight !== chip.clientHeight ||
+              text.top < box.top - 0.5 ||
+              text.bottom > box.bottom + 0.5 ||
+              text.left < box.left - 0.5 ||
+              text.right > box.right + 0.5
+            );
+          })
+          .map(
+            chip => `${chip.textContent} ${String(chip.scrollHeight)}/${String(chip.clientHeight)}`
+          );
+      });
+      expect(clipped, `${String(width)} at x${String(scale)}`).toEqual([]);
+      await context.close();
+    }
+  }
+});
+
+test('every timeline card has a hairline to its badge on the rail side, level with the badge centre', async ({
+  page
+}) => {
+  test.skip(
+    ![390, 1280, 2560].includes(viewportWidth()),
+    'checked at the phone and desktop widths'
+  );
+  await page.goto('/');
+  const results = await page.evaluate(() => {
+    const centre = window.innerWidth >= 1024;
+    return Array.from(document.querySelectorAll<HTMLElement>('.timeline-card')).map(card => {
+      const style = getComputedStyle(card, '::before');
+      const box = card.getBoundingClientRect();
+      const badge = card.parentElement?.querySelector('span[aria-hidden]')?.getBoundingClientRect();
+      const lineCentre =
+        box.top +
+        parseFloat(getComputedStyle(card).borderTopWidth) +
+        parseFloat(style.top) +
+        parseFloat(style.height) / 2;
+      const leftSide = centre && card.dataset.side === 'left';
+      // Where the line sits: from the card's edge on the rail side, measured in page space.
+      const border = parseFloat(getComputedStyle(card).borderLeftWidth);
+      const lineLeft = box.left + border + parseFloat(style.left);
+      const lineRight = lineLeft + parseFloat(style.width);
+      const onRailSide = leftSide
+        ? Math.abs(lineLeft - box.right) <= 1
+        : Math.abs(lineRight - box.left) <= 1;
+      // The hairline ends at the badge's edge and never crosses into the circle.
+      const endsAtBadge = badge
+        ? leftSide
+          ? lineRight <= badge.left + 0.5
+          : lineLeft >= badge.right - 0.5
+        : false;
+      return {
+        side: card.dataset.side,
+        onRailSide,
+        endsAtBadge,
+        width: parseFloat(style.width),
+        offset: badge ? Math.abs(lineCentre - (badge.top + badge.height / 2)) : Number.NaN
+      };
+    });
+  });
+  expect(results).toHaveLength(7);
+  for (const result of results) {
+    expect(result.onRailSide, JSON.stringify(result)).toBe(true);
+    expect(result.endsAtBadge, JSON.stringify(result)).toBe(true);
+    expect(result.width).toBeGreaterThan(0);
+    expect(result.offset, JSON.stringify(result)).toBeLessThanOrEqual(1);
+  }
+});
+
 test('home has no axe violations', async ({ page }) => {
   await page.goto('/');
   // Let the 600 ms hero stagger finish; scroll-driven animations never finish, so skip those.
@@ -241,7 +508,10 @@ test('home has no axe violations', async ({ page }) => {
     Promise.all(
       document
         .getAnimations()
-        .filter(animation => !(animation.timeline instanceof ScrollTimeline))
+        .filter(
+          animation =>
+            !(animation.timeline instanceof ScrollTimeline) && animation.playState === 'running'
+        )
         .map(animation => animation.finished)
     )
   );

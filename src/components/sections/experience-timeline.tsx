@@ -65,7 +65,7 @@ export function ExperienceTimeline() {
     <section
       id="experience"
       aria-labelledby="experience-heading"
-      className="flex flex-col gap-8 pt-16 lg:pt-24"
+      className="flex scroll-mt-14 flex-col gap-8 pt-16 lg:pt-24"
     >
       <SectionHeading id="experience-heading">{siteCopy.headings.experience}</SectionHeading>
       <ol className="relative flex flex-col gap-6 before:absolute before:inset-y-2 before:left-6 before:w-px before:bg-border lg:grid lg:grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] lg:gap-x-6 lg:gap-y-8 lg:before:left-1/2">
@@ -115,7 +115,7 @@ export function ExperienceTimeline() {
               <span
                 aria-hidden="true"
                 className={cn(
-                  'badge-in absolute top-0 left-0 flex size-12 flex-col items-center justify-center rounded-full bg-brand font-mono text-xs leading-none font-bold text-brand-foreground ring-[5px] ring-background lg:size-14 lg:text-[0.8125rem]',
+                  'badge-in absolute top-0 left-0 z-10 flex size-12 flex-col items-center justify-center rounded-full bg-brand font-mono text-xs leading-none font-bold text-brand-foreground ring-[5px] ring-background lg:size-14 lg:text-[0.8125rem]',
                   side === 'left'
                     ? 'lg:left-[calc(100%+1.5rem)]'
                     : 'lg:right-[calc(100%+1.5rem)] lg:left-auto'

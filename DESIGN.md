@@ -172,7 +172,7 @@ Technical and quiet. Nothing on the page is worth a week, and nothing should loo
 
 ## Colors
 
-Tokens only. No hex or oklch values inside components: use the Tailwind utilities that map to `src/styles/globals.css`, where the same values live under their CSS names. The `accent*` tokens here are `--brand*` there, because shadcn reserves `--accent` for hover surfaces; `primary` is shadcn's slate button fill, not the brand.
+Tokens only. No hex or oklch values inside components: use the Tailwind utilities that map to `src/styles/globals.css`, where the same values live under their CSS names. Merge classes with `cn` from `src/lib/utils.ts`, which knows the four type tokens as font sizes; a generic merge drops `text-label` whenever a text colour follows it. The `accent*` tokens here are `--brand*` there, because shadcn reserves `--accent` for hover surfaces; `primary` is shadcn's slate button fill, not the brand.
 
 The accent carries the primary action (the resume pill), the link chips, the timeline rail with its dots and year badges, the short rule before each section heading, the bullet markers and the title rungs, and link text on hover. Everything else is slate.
 
@@ -190,7 +190,7 @@ Section headings carry the voice ("Hello", "Things I've built", "Where I've been
 
 ## Layout
 
-Prose runs at 62ch. Everything else sits in a 72rem frame (`max-w-6xl`) with 1rem side gutters on phones and 1.5rem from 640px; the cover band is the one full-bleed element.
+Prose runs at 62ch. Everything else sits in a 72rem frame (`max-w-6xl`) with 1rem side gutters on phones and 1.5rem from 640px; the cover band is the one full-bleed element. The cover itself is a fixed layer behind the band, so the page scrolls over it and every block after the band carries the page background. Each section targeted by the header links has a 56px scroll margin (the 48px header plus 8px), so a nav click lands the heading below the header.
 
 Spacing is Tailwind's 0.25rem step. Sections are `section-sm` (4rem) apart on phones and `section` (6rem) from 1024px, separated by hairlines; cards are 1.25rem apart, timeline rows 1.5rem on the single rail and 2rem on the centre rail.
 
@@ -210,23 +210,23 @@ The base radius is 0.625rem; the scale is multiples of it (`rounded` above). Car
 
 ## Components
 
-Reuse an existing component before creating one. The page is built from: the fixed header (name, section links from 768px, the resume pill at the small button size), the hero (cover band with its bottom fade and accent tint in dark, overlapping avatar, name, title, balanced headline, location, actions), project cards, timeline nodes with year badges, chip groups, and the one-line footer.
+Reuse an existing component before creating one. The page is built from: the fixed header (name, the resume pill at its 28px small size and the section links at that height, on one line), the hero (a fixed cover cropped to its top with a bottom fade and an accent tint in dark, a transparent band over it, overlapping avatar, name, title, balanced headline, location, the resume pill at its 36px button size with the two links at the same height and their icons on the label's x-height), project cards, timeline nodes with year badges, chip groups, and the one-line footer.
 
-A project card is one link to its primary proof: the title anchor stretches over the card, the primary label is a plain chip inside it, and the secondary link stays its own anchor above the stretched one. Hover lifts the card 2px and brightens its ring.
+A project card is one link to its primary proof: the title anchor stretches over the card, and both proof chips are anchors above it, the primary to the same destination. Hover lifts the card 2px and brightens its ring.
 
-Chips are shadcn badges, 24px tall, mono label, pill-shaped: proof links use the `secondary` variant with the accent soft fill and accent text, toolbox tags the `outline` variant with the muted fill. Prose links are underlined with a muted underline and take the accent on hover.
+One chip shape, 24px tall with a 16px line height, mono label, pill radius, nothing clipped or transitioned: every proof link on a card or a timeline node is an accent chip (accent soft fill, accent text) and a real anchor; the grey tag with the muted fill is for Toolbox terms only. Prose links are underlined with a muted underline and take the accent on hover.
 
-A timeline node is a bordered card with the era name, years in mono, descriptor, one or two highlights with accent markers and a proof chip; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year only; the card beside it carries the full range.
+A timeline node is a bordered card with the era name, years in mono, descriptor, one or two highlights with accent markers and a proof chip; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year only; the card beside it carries the full range. A 1px hairline in the rail's colour joins the card's rail-facing edge to the badge, level with the badge's centre and exactly the gap long, under the badge; it is part of the card, so it slides in with the card and is static under reduced motion.
 
 Every interactive element has a hover state and a visible `focus-visible` ring. Every image has a sized slot: explicit width and height, AVIF with WebP fallback, a 640px variant where the slot is narrow.
 
-The header fades in on the hero's view timeline, opacity only, and is always in the tab order.
+The header fades in once the hero has fully scrolled out: a 200ms fade that plays forwards at that threshold and backwards when the hero returns where animation triggers exist, a scroll-linked fade over the last 15% of the hero's exit where only scroll-driven animation exists, and simply visible otherwise. Opacity only, so it is always in the tab order and shows itself on focus.
 
 ## Do's and Don'ts
 
 - Do open the page and compare it to this file before a PR: `npm run visual-check` at 390, 1024, 1440 and 2560 in both schemes, and `--motion` after any motion change.
-- Do ship a change to this file that alters rendering as its own PR, with before and after visual-check screenshots in the PR body. A documentation PR changes no pixels.
-- Do keep motion as texture: scroll-driven only inside `@supports (animation-timeline: scroll())` and `prefers-reduced-motion: no-preference`, reveals fill forwards and never start below 0.4 opacity, and a load-time stagger on the hero only. Nothing is invisible without motion support.
+- Do ship a change to this file that alters rendering as its own PR: before and after visual-check runs are taken on `main` and on the branch, kept under `.visual/`, and the PR body states what differs per pair. Screenshots are never attached or committed. A documentation PR changes no pixels.
+- Do keep motion as texture: scroll-driven only inside `@supports (animation-timeline: scroll())` and `prefers-reduced-motion: no-preference`, reveals fill forwards and never start below 0.4 opacity, a load-time stagger on the hero only, and the header's threshold fade inside its own `@supports`. Nothing is invisible without motion support, and the cover does not drift: it is a fixed layer the page scrolls over.
 - Do run `npm run design:lint` after editing the front matter; `src/styles/tokens.test.ts` fails if a token here drifts from `globals.css` or the page's spacing utilities.
 - Don't add gradients, emoji icons or a new colour to make it pop. The cover band's bottom fade is the one named exception.
 - Don't add client components for decoration. Every component is a Server Component unless a feature needs the browser.

@@ -7,6 +7,7 @@
 // --motion leaves motion on and captures the hero 0, 300 and 700 ms after load, then each section
 // 400 ms after an instant scroll to it, so the stagger and the scroll-driven reveals can be reviewed.
 // --scheme dark (or light) limits the run to one color scheme.
+// --scale 1.25 sets the device scale factor (default 1) and suffixes the label with it.
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -24,6 +25,7 @@ const full = args.includes('--full');
 const file = opt('file');
 const browserName = opt('browser') === 'firefox' ? 'firefox' : 'chromium';
 const motion = args.includes('--motion');
+const scale = Number(opt('scale') ?? 1);
 const schemes = opt('scheme') ? [String(opt('scheme'))] : ['light', 'dark'];
 const HERO_FRAMES_MS = [0, 300, 700];
 const SECTIONS = ['about', 'work', 'experience', 'skills'];
@@ -31,7 +33,8 @@ const SETTLE_MS = 400;
 const label =
   (opt('label') ?? accent ?? (file ? basename(String(file), '.html') : 'default')) +
   (browserName === 'firefox' ? '-firefox' : '') +
-  (motion ? '-motion' : '');
+  (motion ? '-motion' : '') +
+  (scale === 1 ? '' : `-x${String(scale)}`);
 const port = 8788;
 const base = `http://127.0.0.1:${port}`;
 const widths = opt('widths') ? String(opt('widths')).split(',').map(Number) : [390, 1280, 2560];
@@ -73,7 +76,7 @@ for (const scheme of schemes) {
       viewport: { width, height: width < 768 ? 844 : 1200 },
       colorScheme: scheme,
       reducedMotion: motion ? 'no-preference' : 'reduce',
-      deviceScaleFactor: 1
+      deviceScaleFactor: scale
     });
     const page = await context.newPage();
     if (accent) {

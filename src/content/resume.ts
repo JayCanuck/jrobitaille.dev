@@ -18,10 +18,11 @@ export const profile: Profile = {
   },
   metaDescription:
     'Staff software engineer: full-stack, platform and developer tooling, 15+ years shipping web products. Mountain View, CA, open to remote.',
-  // Page copy sized for the screen (D13); the long form below is kept for the agent-facing data.
+  // Page copy (D13): two of the four public profile paragraphs, verbatim, the origin story and the one
+  // about making things; the cards carry the product list and About does not restate the search.
   about: [
-    'I started in the Palm webOS homebrew community, and that pull toward web and cloud tech has carried me through 15+ years, most of them at LG shipping full-stack web products and the platform work underneath them: the Enact React framework for webOS TVs and its build tooling, the cloud platform for the SVL autonomous-driving simulator, and the 3D product experience on LG.com.',
-    'My team was eliminated in LG’s 2026 restructuring, so I’m looking for full-stack, platform or developer tooling roles, remote or in the SF Bay Area.'
+    'I started out in the Palm webOS homebrew community, patching system apps and building webapps the platform didn’t have yet, and that pull toward web and cloud tech has carried me through 15+ years in the industry. Most of that was at LG, shipping full-stack web products and the platform work underneath them.',
+    'I enjoy the process of making, bringing an idea into being from the “what” and “why” through to the “how”, and building it alongside people who come at it from different skillsets than mine.'
   ],
   aboutLong: [
     'I started out in the Palm webOS homebrew community, patching system apps and building webapps the platform didn’t have yet, and that pull toward web and cloud tech has carried me through 15+ years in the industry. Most of that was at LG, shipping full-stack web products and the platform work underneath them.',

@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react';
 
-import { badgeVariants } from '@/components/ui/badge';
+import { chipClass } from '@/components/ui/chip';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Picture } from '@/components/ui/picture';
 import type { Project } from '@/content/schema';
@@ -10,14 +10,9 @@ interface ProjectCardProps {
   project: Project;
 }
 
-const chipClass = badgeVariants({
-  variant: 'secondary',
-  className: 'h-6 border-transparent bg-brand-soft px-2.5 font-mono text-label text-brand-text'
-});
-
 // Image on top, title, one-line blurb, then the proof chips and the year span (D13). The whole
-// card is the primary link: the title anchor stretches over the card, the primary label is a plain
-// chip inside it, and the secondary link stays its own anchor above the stretched one (D15).
+// card is the primary link: the title anchor stretches over the card, and both proof chips are
+// anchors above the stretched one, the primary to the same destination (D15 amendment).
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Card className="group/project relative w-full gap-3 pt-0 hover:shadow-md hover:ring-foreground/25 motion-safe:transition-[transform,box-shadow] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5">
@@ -50,7 +45,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <p className="text-muted-foreground">{project.blurb}</p>
       </CardContent>
       <CardFooter className="flex-wrap gap-2 border-t-0 bg-transparent pt-0">
-        <span className={chipClass}>{project.link.label}</span>
+        <a
+          href={project.link.href}
+          rel="noopener noreferrer"
+          className={cn(chipClass, 'relative z-10')}
+        >
+          {project.link.label}
+        </a>
         {project.secondaryLink && (
           <a
             href={project.secondaryLink.href}
