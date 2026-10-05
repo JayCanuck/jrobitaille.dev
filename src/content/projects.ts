@@ -42,7 +42,7 @@ export const projects: Project[] = [
     blurb: 'LG’s earlier webOS app framework. I shipped its final releases and wrote webOS.js.',
     description:
       'LG’s earlier open-source JavaScript framework for webOS TVs and the predecessor to Enact. I shipped its final releases across eleven public repos through 2016 and wrote webOS.js, the standalone library giving partner apps webOS integration outside Enyo.',
-    image: images['enyo'],
+    image: images.enyo,
     link: { label: 'GitHub', href: 'https://github.com/enyojs' },
     secondaryLink: { label: 'enyo-webos', href: 'https://github.com/enyojs/enyo-webos' }
   },
