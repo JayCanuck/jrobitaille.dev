@@ -1,36 +1,43 @@
-import type { Era } from '@/content/schema';
+import type { Link } from '@/content/schema';
 
 interface TimelineNodeProps {
-  era: Era;
+  as: 'h3' | 'h4';
+  name: string;
+  years: string;
+  desc: string;
+  highlights: string[];
+  link?: Link;
 }
 
-// One era: rail label (title ladder), name, years, descriptor, up to two bullets, proof link if public.
-export function TimelineNode({ era }: TimelineNodeProps) {
+// One timeline node: name, years, descriptor, one or two highlights, proof link if public.
+// Highlights are the page layer; the full bullet pool stays agent-facing (D12).
+export function TimelineNode({
+  as: Heading,
+  name,
+  years,
+  desc,
+  highlights,
+  link
+}: TimelineNodeProps) {
   return (
-    <li className="flex flex-col gap-2 border-l border-border pl-4">
-      <p className="text-sm text-muted-foreground">
-        {era.rail} · {era.employer}
-      </p>
-      <h3 className="text-lg font-medium">{era.name}</h3>
-      <p className="text-sm text-muted-foreground">
-        <time dateTime={String(era.start)}>{era.start}</time> to{' '}
-        <time dateTime={String(era.end)}>{era.end}</time>
-      </p>
-      <p>{era.descriptor}</p>
+    <div className="flex flex-col gap-2">
+      <Heading className="text-lg font-medium">{name}</Heading>
+      <p className="text-sm text-muted-foreground">{years}</p>
+      <p>{desc}</p>
       <ul className="list-disc pl-5">
-        {era.bullets.map(bullet => (
-          <li key={bullet.id}>{bullet.text}</li>
+        {highlights.map(highlight => (
+          <li key={highlight}>{highlight}</li>
         ))}
       </ul>
-      {era.link && (
+      {link && (
         <a
-          href={era.link.href}
+          href={link.href}
           rel="noopener noreferrer"
           className="w-fit underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
-          {era.link.label}
+          {link.label}
         </a>
       )}
-    </li>
+    </div>
   );
 }
