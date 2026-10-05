@@ -1,4 +1,4 @@
-// Selected work: five proof-linked cards, all on the home page (D11). Each card renders a one-line
+// Selected work: six proof-linked cards, all on the home page (D11). Each card renders a one-line
 // blurb sized for the page (D13); the longer description is kept for the agent-facing data.
 // Approved resume content. Do not polish.
 import { images } from '@/content/images';
@@ -34,6 +34,17 @@ export const projects: Project[] = [
     image: images['enact-cli'],
     link: { label: 'GitHub', href: 'https://github.com/enactjs' },
     secondaryLink: { label: '@enact/cli', href: 'https://github.com/enactjs/cli' }
+  },
+  {
+    slug: 'enyo',
+    title: 'Enyo framework',
+    era: '2013 to 2017',
+    blurb: 'LG’s earlier webOS app framework. I shipped its final releases and wrote webOS.js.',
+    description:
+      'LG’s earlier open-source JavaScript framework for webOS TVs and the predecessor to Enact. I shipped its final releases across eleven public repos through 2016 and wrote webOS.js, the standalone library giving partner apps webOS integration outside Enyo.',
+    image: images.enyo,
+    link: { label: 'GitHub', href: 'https://github.com/enyojs' },
+    secondaryLink: { label: 'enyo-webos', href: 'https://github.com/enyojs/enyo-webos' }
   },
   {
     slug: 'svl-simulator',

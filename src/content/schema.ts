@@ -124,7 +124,7 @@ const projectSchema = z.object({
 
 export const projectsSchema = z
   .array(projectSchema)
-  .length(5)
+  .length(6)
   .refine(
     projects => new Set(projects.map(project => project.slug)).size === projects.length,
     'slugs are unique'

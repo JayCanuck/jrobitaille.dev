@@ -198,7 +198,7 @@ Prose runs at 62ch. Everything else sits in a 72rem frame (`max-w-6xl`) with 1re
 
 Spacing is Tailwind's 0.25rem step. Sections are `section-sm` (4rem) apart on phones and `section` (6rem) from 1024px, separated by hairlines; cards are 1.25rem apart, timeline rows 1.5rem on the single rail and 2rem on the centre rail.
 
-About sits beside Toolbox from 1024px, 7 to 5. Cards are one column, two from 640px, and from 1024px a six-column grid where the first three cards take two columns and the last two take three. The timeline runs on a single left rail below 1024px and an interleaved centre rail above it, each card starting at the previous card's midpoint; a title rung with a single era sits a third closer to its neighbours.
+About sits beside Toolbox from 1024px, 7 to 5. The six cards are one column, two from 640px and three equal columns from 1024px, two rows of three. The timeline runs on a single left rail below 1024px and an interleaved centre rail above it, each card starting at the previous card's midpoint; a title rung with a single era sits a third closer to its neighbours.
 
 Build for 390 first, then check 1024, 1440 and 2560; the e2e suite also runs 768 and 1280.
 
@@ -214,7 +214,7 @@ The base radius is 0.625rem; the scale is multiples of it (`rounded` above). Car
 
 ## Components
 
-Reuse an existing component before creating one. The page is built from: the fixed header (name, the resume pill at its 28px small size and the section links at that height, on one line), the hero (a fixed cover cropped to its top with a bottom fade and an accent tint in dark, a transparent band over it, overlapping avatar, name, title, balanced headline, location, the resume pill at its 36px button size with the two links at the same height and their icons on the label's x-height), project cards, timeline nodes with year badges, chip groups, and the one-line footer.
+Reuse an existing component before creating one. The page is built from: the fixed header (name, the resume pill at its 28px small size and the section links at that height, on one line), the hero (a fixed cover cropped to its top with a bottom fade and an accent tint in dark, a transparent band over it, overlapping avatar, name, title, balanced headline, location, the resume pill at its 36px button size with the two links at the same height and their icons on the label's x-height), six project cards, timeline nodes with year badges, chip groups, and the one-line footer.
 
 A project card is one link to its primary proof: the title anchor stretches over the card, and both proof chips are anchors above it, the primary to the same destination. Hover lifts the card 2px and brightens its ring.
 
@@ -222,7 +222,7 @@ One chip shape, 24px tall with a 16px line height, mono label, pill radius, noth
 
 A timeline node is a bordered card with the era name, years in mono, descriptor, one or two highlights with accent markers and a proof chip; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year only; the card beside it carries the full range. A 1px hairline in the rail's colour joins the card's rail-facing edge to the badge, level with the badge's centre and exactly the gap long, under the badge; it is part of the card, so it slides in with the card and is static under reduced motion.
 
-Every interactive element has a hover state and a visible `focus-visible` ring. Every image has a sized slot: explicit width and height, AVIF with WebP fallback, a 640px variant where the slot is narrow.
+Every interactive element has a hover state and a visible `focus-visible` ring. Every image has a sized slot: explicit width and height, AVIF with WebP fallback. The six card images are one 800×500 file each, since every card slot is the same width and at most 355px wide; the cover and 404 backdrops keep their 640 and 1280 variants.
 
 The header fades in once the hero has fully scrolled out: a 200ms fade that plays forwards at that threshold and backwards when the hero returns where animation triggers exist, a scroll-linked fade over the last 15% of the hero's exit where only scroll-driven animation exists, and simply visible otherwise. Opacity only, so it is always in the tab order and shows itself on focus.
 

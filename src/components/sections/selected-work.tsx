@@ -2,11 +2,10 @@ import { ProjectCard } from '@/components/sections/project-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { projects } from '@/content/projects';
 import { siteCopy } from '@/content/site';
-import { cn } from '@/lib/utils';
 
-// Five proof-linked image cards (D11) in a grid: one column, two from 640 px, and from 1024 px a
-// six-column grid where the first three cards take two columns each and the last two take three,
-// so five cards fill two rows. Cards rise 8 px as they enter where scroll-driven animation runs.
+// Six proof-linked image cards (D11) in a grid: one column, two from 640 px and three equal columns
+// from 1024 px, so six cards fill two rows. Cards rise 8 px as they enter where scroll-driven
+// animation runs.
 export function SelectedWork() {
   return (
     <section
@@ -15,12 +14,9 @@ export function SelectedWork() {
       className="flex scroll-mt-14 flex-col gap-6 pt-16 lg:pt-24"
     >
       <SectionHeading id="work-heading">{siteCopy.headings.work}</SectionHeading>
-      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
-        {projects.map((project, index) => (
-          <li
-            key={project.slug}
-            className={cn('rise flex', index < 3 ? 'lg:col-span-2' : 'lg:col-span-3')}
-          >
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {projects.map(project => (
+          <li key={project.slug} className="rise flex">
             <ProjectCard project={project} />
           </li>
         ))}

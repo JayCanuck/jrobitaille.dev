@@ -5,40 +5,31 @@ import type { SiteImage } from '@/content/schema';
 export const images = {
   'cover': { src: '/images/cover', width: 1920, height: 600, alt: '', widths: [640, 1280] },
   'avatar': { src: '/images/avatar', width: 320, height: 320, alt: 'Jason Robitaille' },
-  'enact-cli': {
-    src: '/images/enact-cli',
-    width: 1200,
-    height: 750,
-    alt: 'Enact framework site',
-    widths: [640]
-  },
+  'enact-cli': { src: '/images/enact-cli', width: 800, height: 500, alt: 'Enact framework site' },
+  'enyo': { src: '/images/enyo', width: 800, height: 500, alt: 'Enyo framework site' },
   'svl-simulator': {
     src: '/images/svl-simulator',
-    width: 1200,
-    height: 750,
-    alt: 'SVL Simulator web platform',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'SVL Simulator web platform'
   },
   'retailverse-web': {
     src: '/images/retailverse-web',
-    width: 1200,
-    height: 750,
-    alt: 'RetailVerse Web 3D viewer showing an LG washer',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'RetailVerse Web 3D viewer showing an LG washer'
   },
   'webos-homebrew': {
     src: '/images/webos-homebrew',
-    width: 1200,
-    height: 750,
-    alt: 'WebOS Quick Install desktop application',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'WebOS Quick Install desktop application'
   },
   'gamelist-utils-muos': {
     src: '/images/gamelist-utils-muos',
-    width: 1200,
-    height: 750,
-    alt: 'Terminal showing gamelist-utils --help output',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'Terminal showing gamelist-utils --help output'
   },
   'not-found': { src: '/images/not-found', width: 1920, height: 600, alt: '', widths: [640, 1280] },
   'ufo-and-cow': {
