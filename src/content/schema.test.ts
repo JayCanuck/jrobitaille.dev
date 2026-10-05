@@ -148,9 +148,9 @@ describe('experience timeline', () => {
 });
 
 describe('project cards', () => {
-  it('has exactly five cards with unique slugs and a proof link each', () => {
-    expect(projects).toHaveLength(5);
-    expect(new Set(projects.map(project => project.slug)).size).toBe(5);
+  it('has exactly six cards with unique slugs and a proof link each', () => {
+    expect(projects).toHaveLength(6);
+    expect(new Set(projects.map(project => project.slug)).size).toBe(6);
     for (const project of projects) expect(project.link.href).toMatch(/^https:\/\//);
   });
 

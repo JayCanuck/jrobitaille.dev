@@ -19,7 +19,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
       {project.image ? (
         <Picture
           image={project.image}
-          sizes="(min-width: 1024px) 560px, (min-width: 640px) 50vw, 100vw"
           className="block"
           imgClassName="aspect-[16/10] w-full border-b object-cover"
         />

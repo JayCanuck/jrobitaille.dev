@@ -20,48 +20,52 @@ const IMAGES = [
     widths: [640, 1280]
   },
   { name: 'avatar', file: 'avatar.jpg', width: 320, height: 320, alt: 'Jason Robitaille' },
-  // Card images: 1200 wide for the widest slot, 640 for the narrow ones and phones.
+  // Card images: one 800x500 file each; every slot is at most 355px wide, so this covers 2x screens.
   {
     name: 'enact-cli',
     file: 'enactjs.jpg',
-    width: 1200,
-    height: 750,
-    alt: 'Enact framework site',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'Enact framework site'
+  },
+  // The Enyo source is a 1280x900 page capture; the top crop keeps the site header and hero.
+  {
+    name: 'enyo',
+    file: 'enyojs.jpg',
+    width: 800,
+    height: 500,
+    position: 'top',
+    alt: 'Enyo framework site'
   },
   {
     name: 'svl-simulator',
     file: 'svlsimulator.jpg',
-    width: 1200,
-    height: 750,
-    alt: 'SVL Simulator web platform',
-    widths: [640]
+    width: 800,
+    height: 500,
+    alt: 'SVL Simulator web platform'
   },
   {
     name: 'retailverse-web',
     file: 'retailverse-web.png',
-    width: 1200,
-    height: 750,
+    width: 800,
+    height: 500,
     alt: 'RetailVerse Web 3D viewer showing an LG washer',
-    widths: [640],
     optional: true
   },
   {
     name: 'webos-homebrew',
     file: 'webos-homebrew.png',
-    width: 1200,
-    height: 750,
+    width: 800,
+    height: 500,
     alt: 'WebOS Quick Install desktop application',
-    widths: [640],
     optional: true
   },
   {
     name: 'gamelist-utils-muos',
     file: 'gamelist-utils-muos.png',
-    width: 1200,
-    height: 750,
+    width: 800,
+    height: 500,
     alt: 'Terminal showing gamelist-utils --help output',
-    widths: [640],
     optional: true
   },
   {

@@ -96,8 +96,8 @@ test('home renders every section in order with its content', async ({ page }) =>
   await expect(
     page.getByRole('heading', { level: 3, name: 'LG Electronics, 2015 to 2026' })
   ).toBeVisible();
-  // Three employer blocks, five cards, five skill groups at h3; seven era nodes at h4 (D14).
-  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(3 + 5 + 5);
+  // Three employer blocks, six cards, five skill groups at h3; seven era nodes at h4 (D14).
+  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(3 + 6 + 5);
   await expect(page.getByRole('heading', { level: 4 })).toHaveCount(7);
   // The title ladder is a labelled non-heading element, shown once per title.
   await expect(page.getByRole('heading', { name: 'Senior Software Engineer' })).toHaveCount(0);
