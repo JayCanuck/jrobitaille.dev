@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets config: serves the Next.js export at *.workers.dev; the custom domain is added in Phase 5 (D2).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jrobitaille-dev",
+  "compatibility_date": "2026-10-04",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+  },
+}

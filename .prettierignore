@@ -1,0 +1,9 @@
+# Generated or vendored paths Prettier must not touch.
+node_modules
+.next
+out
+.wrangler
+playwright-report
+test-results
+package-lock.json
+next-env.d.ts
