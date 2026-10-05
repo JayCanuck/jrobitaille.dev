@@ -7,7 +7,7 @@ import { Skills } from '@/components/sections/skills';
 import { profile } from '@/content/resume';
 import { personJsonLd, webSiteJsonLd } from '@/lib/json-ld';
 
-// Home: every section is a Server Component rendered at build; no client JS in Phase 2.
+// Home: hero, About, Selected work, Experience, Skills (D13). Server Components only, no client JS.
 export default function HomePage() {
   return (
     <main id="main" className="mx-auto flex w-full max-w-prose flex-1 flex-col gap-16 px-6 py-16">
@@ -15,8 +15,8 @@ export default function HomePage() {
       <JsonLd data={webSiteJsonLd(profile)} />
       <Hero />
       <About />
-      <ExperienceTimeline />
       <SelectedWork />
+      <ExperienceTimeline />
       <Skills />
     </main>
   );

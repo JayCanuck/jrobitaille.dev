@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     default: `${profile.name} · ${profile.title}`,
     template: `%s · ${profile.name}`
   },
-  description: `${profile.name}, ${profile.title}. ${profile.headline}.`,
+  description: profile.metaDescription,
   alternates: { canonical: '/' },
   openGraph: {
     type: 'profile',
     siteName: profile.name,
     title: `${profile.name} · ${profile.title}`,
-    description: profile.headline,
+    description: profile.metaDescription,
     url: '/'
   },
   twitter: { card: 'summary' }

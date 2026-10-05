@@ -1,25 +1,30 @@
-// Build-output checks over the served out/index.html (D12): the page renders the highlights and
-// blurbs and nothing from the agent-facing detail, and no public string appears twice.
+// Build-output checks over the served out/index.html (D12, D13): the page renders the short About,
+// the highlights and the one-line blurbs, nothing from the agent-facing detail, and no public string
+// appears twice.
 import { expect, test } from '@playwright/test';
 
 import { earlier, employer } from '../src/content/experience';
 import { projects } from '../src/content/projects';
-import { education, openSource, summary } from '../src/content/resume';
+import { education, openSource, profile, summary } from '../src/content/resume';
+import { bulletText } from '../src/content/schema';
 
 const timelineNodes = [...employer.titles.flatMap(title => title.eras), ...earlier];
 
-test('home renders every highlight and blurb and none of the hidden dataset', async ({ page }) => {
+test('home renders the page layer and none of the agent-facing detail', async ({ page }) => {
   await page.goto('/');
   const text = await page.locator('body').innerText();
 
+  for (const paragraph of profile.about) expect(text).toContain(paragraph);
   for (const highlight of timelineNodes.flatMap(node => node.highlights)) {
     expect(text).toContain(highlight);
   }
   for (const project of projects) expect(text).toContain(project.blurb);
 
+  for (const paragraph of profile.aboutLong) expect(text).not.toContain(paragraph);
   for (const bullet of timelineNodes.flatMap(node => node.bullets)) {
-    expect(text).not.toContain(bullet);
+    expect(text).not.toContain(bulletText(bullet));
   }
+  for (const project of projects) expect(text).not.toContain(project.description);
   expect(text).not.toContain(summary);
   for (const entry of openSource) expect(text).not.toContain(entry);
   expect(text).not.toContain(education);
@@ -29,11 +34,12 @@ test('no public string of 20 or more characters appears twice on the page', asyn
   await page.goto('/');
 
   // Short labels (link names, year ranges, chips) legitimately recur; sentences and titles must not.
+  // The title ladder repeats the current title by design (D13), so rail labels are excluded.
   const texts = await page.evaluate(() => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const found: string[] = [];
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      if (node.parentElement?.closest('script, style')) continue;
+      if (node.parentElement?.closest('script, style, [data-rail]')) continue;
       const value = node.textContent?.trim() ?? '';
       if (value.length >= 20) found.push(value);
     }

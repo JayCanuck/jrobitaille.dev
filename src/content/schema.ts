@@ -1,6 +1,7 @@
 // Content schema: every public string on the site is typed here and validated in schema.test.ts.
-// Two layers (D12): the full agent-facing data (bullets, summary, open source, education) and the
-// page layer (highlights, blurbs), which is all the home page renders in Phase 2.
+// Two layers (D12, D13): the full agent-facing data (bullets, summary, open source, education, the
+// long About, card descriptions) and the page layer (short About, highlights, one-line blurbs),
+// which is all the home page renders.
 import { z } from 'zod';
 
 // Public, live proof only: https or a site-relative path (content.md).
@@ -21,8 +22,15 @@ export const imageSchema = z
   })
   .refine(image => image.width * 10 === image.height * 16, 'image must be 16:10');
 
-// Resume bullets in resume order; each is approved resume content.
-const bulletsSchema = z.array(z.string().min(1)).min(1);
+// Resume bullets in resume order, approved resume content; a bullet may carry a public reference.
+const bulletSchema = z.union([
+  z.string().min(1),
+  z.object({ text: z.string().min(1), reference: hrefSchema })
+]);
+const bulletsSchema = z.array(bulletSchema).min(1);
+
+export type Bullet = z.infer<typeof bulletSchema>;
+export const bulletText = (bullet: Bullet) => (typeof bullet === 'string' ? bullet : bullet.text);
 
 // Page layer: one or two lines per timeline node, each under 140 characters.
 const highlightsSchema = z.array(z.string().min(1).max(139)).min(1).max(2);
@@ -38,7 +46,7 @@ const eraSchema = z.object({
   link: linkSchema.optional()
 });
 
-// One rung of the title ladder; its rail label changes only when the title changes.
+// One rung of the title ladder; its rail label is shown where the title changes.
 const titleSchema = z.object({
   title: z.string().min(1),
   rail: z.string().min(1),
@@ -68,7 +76,7 @@ const earlierRoleSchema = z.object({
 
 export const earlierRolesSchema = z.array(earlierRoleSchema).min(1);
 
-export const openSourceSchema = bulletsSchema;
+export const openSourceSchema = z.array(z.string().min(1)).min(1);
 
 const skillGroupSchema = z.object({
   name: z.string().min(1),
@@ -84,26 +92,27 @@ export const profileSchema = z.object({
   location: z.string().min(1),
   availability: z.string().min(1),
   email: z.email(),
+  metaDescription: z.string().min(1).max(160),
   links: z.object({
     resume: hrefSchema,
     linkedin: z.url(),
     github: z.url(),
     npm: z.url()
   }),
-  about: z.array(z.string().min(1)).min(1)
+  // Short About for the page; the long form is agent-facing data (D13).
+  about: z.array(z.string().min(1)).min(1).max(2),
+  aboutLong: z.array(z.string().min(1)).min(1)
 });
 
-const sentenceCount = (text: string) => (text.match(/[.!?](?=\s|$)/g) ?? []).length;
+// One line per card (D13): hard cap 100 characters.
+export const BLURB_MAX_LENGTH = 100;
 
 const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   era: z.string().min(1),
-  // Plain approved sentences (D12). Ceiling is three: the @enact/cli blurb has three.
-  blurb: z
-    .string()
-    .min(1)
-    .refine(text => sentenceCount(text) >= 1 && sentenceCount(text) <= 3, 'one to three sentences'),
+  blurb: z.string().min(1).max(BLURB_MAX_LENGTH),
+  description: z.string().min(1),
   link: linkSchema,
   secondaryLink: linkSchema.optional(),
   image: imageSchema.optional()
