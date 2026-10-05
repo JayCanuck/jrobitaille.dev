@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { siteConfig } from '@/lib/site';
+import { siteUrl } from '@/lib/site';
 
 // Metadata routes must opt into static rendering under output: "export".
 export const dynamic = 'force-static';
@@ -9,6 +9,6 @@ export const dynamic = 'force-static';
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: '*', allow: '/' },
-    sitemap: `${siteConfig.url}/sitemap.xml`
+    sitemap: `${siteUrl}/sitemap.xml`
   };
 }

@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
-import { siteConfig } from '@/lib/site';
+import { SiteFooter } from '@/components/layout/site-footer';
+import { SkipLink } from '@/components/layout/skip-link';
+import { profile } from '@/content/resume';
+import { siteUrl } from '@/lib/site';
 import '@/styles/globals.css';
 
 // Two self-hosted fonts via next/font: zero layout shift (spec §4).
@@ -12,18 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: `${siteConfig.name} · ${siteConfig.title}`,
-    template: `%s · ${siteConfig.name}`
+    default: `${profile.name} · ${profile.title}`,
+    template: `%s · ${profile.name}`
   },
-  description: `${siteConfig.name}, ${siteConfig.title}. ${siteConfig.headline}.`,
+  description: `${profile.name}, ${profile.title}. ${profile.headline}.`,
   alternates: { canonical: '/' },
   openGraph: {
     type: 'profile',
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} · ${siteConfig.title}`,
-    description: siteConfig.headline,
+    siteName: profile.name,
+    title: `${profile.name} · ${profile.title}`,
+    description: profile.headline,
     url: '/'
   },
   twitter: { card: 'summary' }
@@ -32,7 +35,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <SkipLink />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

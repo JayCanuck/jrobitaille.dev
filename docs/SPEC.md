@@ -4,7 +4,7 @@ What the site is, what it is not, and how it is built. Decisions live in `DECISI
 
 ## 1. Goals and non-goals
 
-**Goal:** a visitor lands on jrobitaille.dev and within 10 seconds knows who Jason is (Staff Software Engineer; full-stack, platform and developer tooling; 15+ years), where to click (Resume PDF, LinkedIn, GitHub), and sees 5 to 6 proof-linked projects. Engineers who open the repo see a clean, modern, deliberate codebase and a demonstrable agentic build process.
+**Goal:** a visitor lands on jrobitaille.dev and within 10 seconds knows who Jason is (Staff Software Engineer; full-stack, platform and developer tooling; 15+ years), where to click (Resume PDF, LinkedIn, GitHub), and sees five proof-linked projects. Engineers who open the repo see a clean, modern, deliberate codebase and a demonstrable agentic build process.
 
 **The site confirms, it does not convert.** It must be fast, clean, truthful and finished. Nothing here is worth a week.
 
@@ -13,16 +13,17 @@ What the site is, what it is not, and how it is built. Decisions live in `DECISI
 ## 2. Information architecture and content
 
 ```
-/              hero, about, experience timeline, selected work (5), open source, contact footer
-/projects      all project cards with full blurbs and proof links
+/              hero, about, experience timeline, selected work (5), skills, contact footer
 /resume.pdf    static file, swapped per build
 /404
 ```
 
+The site confirms the resume; it does not restate it (D11). There is no `/projects` route.
+
 - **Hero:** name, "Staff Software Engineer", one line ("Full-Stack, Platform & Developer Tooling · 15+ yrs shipping web products"), location line "Mountain View, CA · remote or Bay Area", three buttons (Resume PDF, LinkedIn, GitHub), availability line "Open to full-stack, platform or developer tooling roles".
 - **About:** the LinkedIn About text, verbatim (~160 words).
-- **Experience timeline:** one node per era, newest first: RetailVerse 2025 to 2026, 3D asset platform 2022 to 2026, SVL Simulator 2020 to 2022, Enact 2017 to 2020, Enyo 2015 to 2017, Experis contract 2013 to 2015, Canuck Coding 2009 to 2013. Each node: era name, years, one-line descriptor, 2 to 3 bullets, proof link where public. Title ladder (Software Engineer, Senior, Staff) as a rail label.
-- **Project cards, in order:** RetailVerse Web (LG press release + a live LG.com page); @enact/cli and Enact release engineering (GitHub, npm); SVL Simulator cloud platform (archived GitHub, svlsimulator.com); 3D asset platform (internal, no proof link, says so); webOS homebrew (WebOS Quick Install, Internalz; GitHub, LG docs page); current personal work (gamelist-utils, muos.js; GitHub, npm). Home shows the first five; `/projects` shows all six plus a short "also" line. Each card: what it is, what Jason did, one outcome, link. No download counts, no internal metrics, no patents, company figures attributed to the company.
+- **Experience timeline:** one node per era, newest first: RetailVerse 2025 to 2026, 3D asset platform 2022 to 2026, SVL Simulator 2020 to 2022, Enact 2017 to 2020, Enyo 2015 to 2017, Experis contract 2013 to 2015, Canuck Coding 2009 to 2013. Each node: era name, years, one-line descriptor, at most 2 bullets (1 for Experis and Canuck Coding), proof link where public (SVL links `github.com/lgsvl/simulator`; never `svlsimulator.com`, the domain lapsed). Title ladder as a rail label: Software Engineer, Senior, Staff; Canuck Coding reads "Software Developer (self-employed)" to match LinkedIn.
+- **Project cards, exactly five, all on the home page, in order:** RetailVerse Web (LG press release + one live viewer example); @enact/cli (GitHub, npm); SVL Simulator cloud platform (`github.com/lgsvl/svlsimulator.com`); webOS homebrew (webos-quick-install, LG webOSTV.js doc); gamelist-utils and muos.js, 2021 to present (GitHub, npm). Each card: title, era, one sentence (two max), one primary proof link, optional secondary link, and an optional fixed 16:10 image slot (placeholder box until Phase 3 screenshots). The 3D asset platform lives in the timeline only. No download counts, no internal metrics, no patents, company figures attributed to the company.
 - **Skills:** grouped text chips in five groups (Languages, Frontend, Backend and data, Build and tooling, CI and cloud). No bars, no logo wall.
 - **Skills word cloud:** the one flourish. A React Three Fiber floating cloud of the same terms, no metrics. Lazily loaded client island below the fold, imported after idle and when the section nears the viewport (the one justified dynamic import + IntersectionObserver, because it gates ~150 KB); `prefers-reduced-motion` disables it; the chip list is the no-JS and screen-reader version; canvas is `aria-hidden`; plain WebGL renderer. Built in Phase 4 so it never blocks launch.
 - **Footer:** email, GitHub, LinkedIn, npm, "Jason Robitaille (JayCanuck)" plain text as the search anchor.
