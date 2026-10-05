@@ -42,7 +42,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </h3>
       </CardHeader>
       <CardContent className="flex-1">
-        <p className="text-muted-foreground">{project.blurb}</p>
+        <p className="text-small text-muted-foreground">{project.blurb}</p>
       </CardContent>
       <CardFooter className="flex-wrap gap-2 border-t-0 bg-transparent pt-0">
         <a

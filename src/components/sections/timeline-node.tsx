@@ -30,8 +30,8 @@ export function TimelineNode({ name, years, desc, highlights, link, side }: Time
         <h4 className="text-base font-semibold">{name}</h4>
         <p className="font-mono text-label text-muted-foreground">{years}</p>
       </div>
-      <p className="text-muted-foreground">{desc}</p>
-      <ul className="list-disc space-y-1 pl-5 marker:text-brand">
+      <p className="text-small text-muted-foreground">{desc}</p>
+      <ul className="list-disc space-y-1 pl-5 text-small marker:text-brand">
         {highlights.map(highlight => (
           <li key={highlight}>{highlight}</li>
         ))}

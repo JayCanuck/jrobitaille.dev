@@ -7,11 +7,13 @@ describe('cn', () => {
   it('keeps a font-size token beside a text colour', () => {
     expect(cn('text-label', 'text-foreground')).toBe('text-label text-foreground');
     expect(cn('text-label', 'text-brand-text')).toBe('text-label text-brand-text');
+    expect(cn('text-small', 'text-muted-foreground')).toBe('text-small text-muted-foreground');
   });
 
   it('lets a later font-size token replace an earlier font size', () => {
     expect(cn('text-xs', 'text-label')).toBe('text-label');
     expect(cn('text-body', 'text-sm')).toBe('text-sm');
+    expect(cn('text-base', 'text-small')).toBe('text-small');
   });
 
   it('still resolves ordinary conflicts', () => {

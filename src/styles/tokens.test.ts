@@ -79,9 +79,13 @@ describe('DESIGN.md tokens match globals.css', () => {
   });
 
   it.each(Object.entries(front.typography))('typography %s', (level, type) => {
-    // The token holds the floor of the fluid level and its line height.
-    const floor = /^clamp\(([^,]+),/.exec(front.fluid[level] ?? '')?.[1];
-    expect(type.fontSize).toBe(floor);
+    // A fluid level's token holds its floor; a fixed level's token is the stylesheet value itself.
+    const fluid = front.fluid[level];
+    if (fluid) {
+      expect(type.fontSize).toBe(/^clamp\(([^,]+),/.exec(fluid)?.[1]);
+    } else {
+      expect(cssValue(theme, `text-${level}`)).toBe(type.fontSize);
+    }
     expect(cssValue(theme, `text-${level}--line-height`)).toBe(String(type.lineHeight));
     expect(['Geist', 'Geist Mono']).toContain(type.fontFamily);
   });
@@ -121,6 +125,14 @@ describe('DESIGN.md tokens match globals.css', () => {
     for (const utility of utilities[level] ?? [`unknown spacing token ${level}`]) {
       expect(page, `${level}: ${utility}`).toContain(utility);
     }
+  });
+
+  it('pins body and defines the small step as fixed sizes', () => {
+    expect(front.fluid.body).toBeUndefined();
+    expect(front.fluid.small).toBeUndefined();
+    expect(front.typography.body?.fontSize).toBe('1rem');
+    expect(front.typography.small?.fontSize).toBe('0.9375rem');
+    expect(cssValue(theme, 'text-small--line-height')).toBe('1.55');
   });
 
   it('lists the five review breakpoints', () => {
