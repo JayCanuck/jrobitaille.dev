@@ -42,6 +42,7 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 - **Performance budget.** Initial JS under 120 KB gzipped on home; LCP under 1.5 s on throttled 4G. Lazy islands must not move LCP or CLS.
 - **Security headers** via Cloudflare `_headers`: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
 - **Claims discipline.** Every public string is checked against `.claude/rules/content.md`. Never reintroduce struck content.
+- **Content mirror.** `src/content/resume.ts` and `experience.ts` mirror `Job-Search\12-Draft-Suite\resume-build\resume-data.js` (b14). When the resume changes, update this file in the same sitting. The page renders highlights and blurbs only; the full bullet pool is for agents (D12).
 
 ## Token discipline
 

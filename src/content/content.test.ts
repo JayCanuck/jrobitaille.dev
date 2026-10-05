@@ -1,9 +1,9 @@
 // Claims discipline: no public string may carry a never-ship term from .claude/rules/content.md.
 import { describe, expect, it } from 'vitest';
 
-import { experience } from '@/content/experience';
+import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
-import { profile, skills } from '@/content/resume';
+import { education, openSource, profile, skills, summary } from '@/content/resume';
 
 // Mirrors the never-ship list in .claude/rules/content.md, plus two session additions:
 // the unclaimable LLM prototype wording (RV-8) and the lapsed svlsimulator.com domain
@@ -31,7 +31,17 @@ const collectStrings = (value: unknown, out: string[] = []): string[] => {
   return out;
 };
 
-const publicStrings = collectStrings([profile, skills, experience, projects]);
+// The full agent-facing dataset, hidden bullets included (D12): never-ship applies to every string.
+const publicStrings = collectStrings([
+  profile,
+  summary,
+  skills,
+  employer,
+  earlier,
+  openSource,
+  education,
+  projects
+]);
 
 describe('public strings', () => {
   it('exist', () => {

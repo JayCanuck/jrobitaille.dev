@@ -27,7 +27,11 @@ test('home renders every section with its content', async ({ page }) => {
   for (const name of ['About', 'Experience', 'Selected work', 'Skills']) {
     await expect(page.getByRole('heading', { level: 2, name })).toBeVisible();
   }
-  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(7 + 5 + 5);
+  await expect(
+    page.getByRole('heading', { level: 3, name: 'LG Electronics, 2015 to 2026' })
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(3 + 5 + 5);
+  await expect(page.getByRole('heading', { level: 4 })).toHaveCount(5);
   await expect(page.getByRole('heading', { level: 3, name: 'Canuck Coding' })).toBeVisible();
   await expect(
     page.getByRole('heading', { level: 3, name: 'gamelist-utils and muos.js' })

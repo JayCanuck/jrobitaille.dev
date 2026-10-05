@@ -1,4 +1,6 @@
 // Content schema: every public string on the site is typed here and validated in schema.test.ts.
+// Two layers (D12): the full agent-facing dataset (bullets, summary, open source, education) and the
+// page layer (highlights, blurbs), which is all the home page renders in Phase 2.
 import { z } from 'zod';
 
 // Public, live proof only: https or a site-relative path (content.md).
@@ -19,34 +21,57 @@ export const imageSchema = z
   })
   .refine(image => image.width * 10 === image.height * 16, 'image must be 16:10');
 
-// Bullet IDs trace each sentence to resume-data.js (RV, SM, SW, SR, SE, PRE) or a locked LinkedIn
-// position (LI-<position>-<n>) so a claim is never introduced without a source.
+// Bullet IDs are the resume-data.js b14 ids, so a claim is never introduced without a source.
 const bulletSchema = z.object({
-  id: z.string().regex(/^(RV|SM|SW|SR|SE|PRE|LI)-[A-Z0-9]+(-\d+)?$/),
+  id: z.string().regex(/^(RV|SM|SW|SR|SE|OS|PRE)-[A-Z0-9]+$/),
   text: z.string().min(1)
 });
 
-const eraSchema = z
-  .object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    start: z.int().min(2009),
-    end: z.int().min(2009),
-    rail: z.string().min(1),
-    employer: z.string().min(1),
-    descriptor: z.string().min(1),
-    bullets: z.array(bulletSchema).min(1).max(2),
-    link: linkSchema.optional()
-  })
-  .refine(era => era.end >= era.start, 'era ends after it starts');
+// Page layer: one or two lines per timeline node, each under 140 characters.
+const highlightsSchema = z.array(z.string().min(1).max(139)).min(1).max(2);
 
-export const experienceSchema = z
-  .array(eraSchema)
-  .min(1)
-  .refine(
-    eras => eras.every((era, i) => i === 0 || (eras[i - 1]?.start ?? 0) >= era.start),
-    'eras are newest first'
-  );
+const eraSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  years: z.string().min(1),
+  desc: z.string().min(1),
+  line: z.string().min(1),
+  bullets: z.array(bulletSchema).min(1),
+  highlights: highlightsSchema,
+  link: linkSchema.optional()
+});
+
+// One rung of the title ladder; its rail label changes only when the title changes.
+const titleSchema = z.object({
+  title: z.string().min(1),
+  rail: z.string().min(1),
+  dates: z.string().min(1),
+  eras: z.array(eraSchema).min(1)
+});
+
+export const employerSchema = z.object({
+  name: z.string().min(1),
+  dates: z.string().min(1),
+  years: z.string().min(1),
+  titles: z.array(titleSchema).min(1)
+});
+
+const earlierRoleSchema = z.object({
+  id: z.string().min(1),
+  org: z.string().min(1),
+  role: z.string().min(1),
+  rail: z.string().min(1),
+  dates: z.string().min(1),
+  years: z.string().min(1),
+  desc: z.string().min(1),
+  bullets: z.array(bulletSchema).min(1),
+  highlights: highlightsSchema,
+  link: linkSchema.optional()
+});
+
+export const earlierRolesSchema = z.array(earlierRoleSchema).min(1);
+
+export const openSourceSchema = z.array(bulletSchema).min(1);
 
 const skillGroupSchema = z.object({
   name: z.string().min(1),
@@ -77,10 +102,11 @@ const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   era: z.string().min(1),
+  // Plain sentences, locked by Jason (D12). Ceiling is three: the @enact/cli blurb has three.
   blurb: z
     .string()
     .min(1)
-    .refine(text => sentenceCount(text) >= 1 && sentenceCount(text) <= 2, 'one or two sentences'),
+    .refine(text => sentenceCount(text) >= 1 && sentenceCount(text) <= 3, 'one to three sentences'),
   link: linkSchema,
   secondaryLink: linkSchema.optional(),
   image: imageSchema.optional()
@@ -94,7 +120,10 @@ export const projectsSchema = z
     'slugs are unique'
   );
 
-export type Era = z.infer<typeof eraSchema>;
+export type Link = z.infer<typeof linkSchema>;
+export type Employer = z.infer<typeof employerSchema>;
+export type EarlierRole = z.infer<typeof earlierRoleSchema>;
+export type Bullet = z.infer<typeof bulletSchema>;
 export type SkillGroup = z.infer<typeof skillGroupSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Project = z.infer<typeof projectSchema>;
