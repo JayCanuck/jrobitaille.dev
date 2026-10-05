@@ -10,7 +10,7 @@ interface TimelineNodeProps {
 }
 
 // One timeline node: name, years, descriptor, one or two highlights, proof link if public.
-// Highlights are the page layer; the full bullet pool stays agent-facing (D12).
+// Highlights are the page layer; the full experience detail stays in the agent-facing data (D12).
 export function TimelineNode({
   as: Heading,
   name,

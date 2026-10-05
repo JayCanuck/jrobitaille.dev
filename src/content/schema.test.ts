@@ -1,5 +1,5 @@
-// The real content must satisfy the zod schema; structural rules (order, counts, highlights, the full
-// [removed] bullet pool) live here too (tdd.md, D12).
+// The real content must satisfy the zod schema; structural rules (order, counts, highlights) live
+// here too (tdd.md, D12).
 import { describe, expect, it } from 'vitest';
 
 import { earlier, employer } from '@/content/experience';
@@ -14,34 +14,6 @@ import {
   projectsSchema,
   skillsSchema
 } from '@/content/schema';
-
-// Every bullet id in the master resume [removed], minus excluded ([id]). Update when the resume changes.
-const B14_BULLET_IDS = [
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]',
-  '[id]'
-];
 
 const issuesOf = (result: { success: boolean; error?: { issues: unknown[] } }) =>
   result.success ? [] : (result.error?.issues ?? ['unknown failure']);
@@ -80,14 +52,13 @@ describe('content parses against the schema', () => {
   });
 });
 
-describe('agent-facing dataset mirrors the master resume [removed]', () => {
-  it('carries every bullet id except excluded', () => {
-    const ids = [
-      ...timelineNodes.flatMap(node => node.bullets.map(bullet => bullet.id)),
-      ...openSource.map(entry => entry.id)
-    ];
-    expect([...ids].sort()).toEqual([...B14_BULLET_IDS].sort());
-    expect(ids).not.toContain('[id]');
+describe('agent-facing data', () => {
+  it('keeps the full experience detail: bullets per era and four open source entries', () => {
+    const bulletCounts = Object.fromEntries(
+      timelineNodes.map(node => [node.id, node.bullets.length])
+    );
+    expect(bulletCounts).toEqual({ RV: 6, SM: 4, SW: 2, SR: 4, SE: 2, EXP: 1, CC: 1 });
+    expect(openSource).toHaveLength(4);
   });
 
   it('keeps the title ladder newest first', () => {
@@ -114,7 +85,7 @@ describe('experience timeline', () => {
     for (const role of earlier) expect(role.highlights).toHaveLength(1);
   });
 
-  it('uses the LinkedIn rail label for Canuck Coding', () => {
+  it('uses the public profile rail label for Canuck Coding', () => {
     const canuck = earlier.find(role => role.org === 'Canuck Coding');
     expect(canuck?.rail).toBe('Software Developer (self-employed)');
   });
