@@ -43,6 +43,7 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 - [x] Motion policy (hero stagger, scroll-driven reveals never below 0.4 opacity, header fade) behind `@supports` and reduced motion
 - [x] Content fixes: slots empty, "15+ years", whole-card links, availability line removed, homebrew image reframed, 640 px card variants
 - [x] e2e updated for the new structure; visual check at 390, 1024, 1440, 2560 in both schemes plus Firefox
+- [x] `DESIGN.md` adopted as the design authority with token, hex and type-floor tests (D16)
 
 ## Phase 4: WebMCP island, word cloud, loop demo
 

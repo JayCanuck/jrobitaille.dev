@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "design:lint": "designmd lint DESIGN.md",
     "typecheck": "next typegen && tsc --noEmit",
     "knip": "knip",
     "test": "vitest run",
@@ -15,7 +16,7 @@
     "images": "node scripts/images.mjs",
     "visual-check": "node scripts/visual-check.mjs",
     "lighthouse": "lhci autorun",
-    "check": "npm run format:check && npm run lint && npm run knip && npm run typecheck && npm test && npm run build && npm run e2e"
+    "check": "npm run format:check && npm run design:lint && npm run lint && npm run knip && npm run typecheck && npm test && npm run build && npm run e2e"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/compat": "^2.1.1",
+    "@google/design.md": "^0.4.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
@@ -49,7 +51,8 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0",
     "vitest": "^5.0.3",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.147.0",
+    "yaml": "^2.9.1"
   },
   "engines": {
     "node": "24.x",
