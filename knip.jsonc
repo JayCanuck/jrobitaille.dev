@@ -1,0 +1,7 @@
+// knip: reports unused files, exports and dependencies (spec §5).
+// ui/*.tsx are shadcn-owned primitives consumed from Phase 2; lucide-react is their icon set; wrangler runs via npx in CI and Playwright; hooks are run by Claude Code.
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/components/ui/*.tsx", ".claude/hooks/*.mjs"],
+  "ignoreDependencies": ["lucide-react", "wrangler"],
+}
