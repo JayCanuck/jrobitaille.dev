@@ -186,7 +186,7 @@ Four weights are in use: 400 for body text, 500 for the title line under the nam
 
 The scale is fluid (`fluid` above): `display` for the name, `h2` for section headings, `body` for everything readable, `label` for mono labels. Each `typography` token holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Card titles and timeline names are 16px at 600; the year badge is 12px (13px from 1024px).
 
-Section headings carry the voice ("Hello", "Things I've shipped", "Where I've been", "Toolbox"); nothing else is written with voice.
+Section headings carry the voice ("Hello", "Things I've built", "Where I've been", "Toolbox"); nothing else is written with voice.
 
 ## Layout
 

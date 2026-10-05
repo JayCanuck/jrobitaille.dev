@@ -25,26 +25,27 @@ export const projects: Project[] = [
   },
   {
     slug: 'enact-cli',
-    title: '@enact/cli',
+    title: 'Enact framework',
     era: '2017 to 2020',
     blurb:
-      'Official build tool for Enact, LG’s React framework for webOS TVs. Created it, owned it four years.',
+      'LG’s open-source React framework for webOS TVs. I created its official CLI and owned it four years.',
     description:
       'The official build tool for Enact, LG’s React framework for webOS TVs. I created it in 2017 and owned it for four years. Still shipping releases.',
     image: images['enact-cli'],
-    link: { label: 'GitHub', href: 'https://github.com/enactjs/cli' },
-    secondaryLink: { label: 'npm', href: 'https://www.npmjs.com/package/@enact/cli' }
+    link: { label: 'GitHub', href: 'https://github.com/enactjs' },
+    secondaryLink: { label: '@enact/cli', href: 'https://github.com/enactjs/cli' }
   },
   {
     slug: 'svl-simulator',
-    title: 'SVL Simulator cloud platform',
+    title: 'SVL Simulator',
     era: '2020 to 2022',
     blurb:
-      'Web platform for LG’s open-source driving simulator. Full-stack features and the public site.',
+      'LG’s open-source autonomous-driving simulator. I built its cloud platform and public site.',
     description:
       'The web platform and public site for LG’s open-source autonomous-driving simulator. I shipped full-stack features there, from sharing to the API token system, and wrote its marketing site.',
     image: images['svl-simulator'],
-    link: { label: 'GitHub', href: 'https://github.com/lgsvl/svlsimulator.com' }
+    link: { label: 'GitHub', href: 'https://github.com/lgsvl' },
+    secondaryLink: { label: 'Website source', href: 'https://github.com/lgsvl/svlsimulator.com' }
   },
   {
     slug: 'webos-homebrew',
@@ -55,8 +56,11 @@ export const projects: Project[] = [
     description:
       'Where I started: 18 webOS apps and WebOS Quick Install, the sideloading tool built on a reverse-engineered implementation of Palm’s novacom protocol. Later, webOS.js for LG.',
     image: images['webos-homebrew'],
-    link: { label: 'GitHub', href: 'https://github.com/JayCanuck/webos-quick-install' },
-    secondaryLink: { label: 'Archive', href: 'https://github.com/JayCanuck/legacy-webos' }
+    link: { label: 'GitHub', href: 'https://github.com/JayCanuck/legacy-webos' },
+    secondaryLink: {
+      label: 'WebOS Quick Install',
+      href: 'https://github.com/JayCanuck/webos-quick-install'
+    }
   },
   {
     slug: 'gamelist-utils-muos',
