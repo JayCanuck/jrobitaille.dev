@@ -7,7 +7,8 @@ import { profile } from '@/content/resume';
 import { siteUrl } from '@/lib/site';
 import '@/styles/globals.css';
 
-// Two self-hosted fonts via next/font: zero layout shift (spec §4).
+// Two self-hosted fonts via next/font: the variable sans for body, the mono for labels, dates and
+// the timeline rail (D14). Default swap with the metric-matched fallback: no layout shift (spec §4).
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     description: profile.metaDescription,
     url: '/'
   },
-  twitter: { card: 'summary' }
+  twitter: { card: 'summary_large_image' }
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

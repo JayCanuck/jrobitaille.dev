@@ -2,13 +2,13 @@
 
 Personal site of Jason Robitaille, Staff Software Engineer. Two routes (`/`, `/resume.pdf`) and a 404, built as a static export and served from Cloudflare's edge. The code is MIT; the site content is Jason's.
 
-**Status:** Phase 2 content. The home page carries the real content behind a zod schema, unstyled; design lands in Phase 3 (`docs/PLAN.md`).
+**Status:** Phase 3 design. Styled, accessible and measured; the WebMCP island and word cloud land in Phase 4 (`docs/PLAN.md`).
 
 ## Stack
 
 Next.js 16 (App Router, `output: 'export'`, React Compiler), TypeScript strict, Tailwind CSS v4, shadcn/ui on Base UI, Vitest, Playwright + axe, ESLint 9, Prettier 3, knip. Hosted on Cloudflare Workers static assets, deployed by GitHub Actions. Node 24, npm.
 
-Nearly everything is a Server Component rendered at build time, so the shipped JavaScript is Next's runtime baseline plus a small number of deliberate client islands (added in Phase 4). The framework is larger than the site needs; that trade is explained in `docs/DECISIONS.md` (D1).
+Nearly everything is a Server Component rendered at build time, so the shipped JavaScript is Next's runtime baseline plus a small number of deliberate client islands (added in Phase 4). That baseline is the whole bill: evergreen browsers load 143.8 KB gzipped of React DOM, the React Flight client and the Next app router, plus an 11 KB inline payload, and 0 KB of site code. The budget is 150 KB. A zero-JS framework would ship a few KB for the same page; Next was chosen anyway for the hiring signal of a public, well-built Next.js codebase. The trade is recorded in `docs/DECISIONS.md` (D1, D14).
 
 ## Run it
 

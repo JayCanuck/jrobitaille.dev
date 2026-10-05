@@ -18,7 +18,9 @@ export const imageSchema = z
     src: hrefSchema,
     alt: z.string(),
     width: z.int().positive(),
-    height: z.int().positive()
+    height: z.int().positive(),
+    // Extra rendered widths (same aspect) for a srcset, e.g. the full-width cover band.
+    widths: z.array(z.int().positive()).optional()
   })
   .refine(image => image.width * 10 === image.height * 16, 'image must be 16:10');
 
@@ -64,6 +66,8 @@ export const employerSchema = z.object({
 const earlierRoleSchema = z.object({
   id: z.string().min(1),
   org: z.string().min(1),
+  // Era node name under the employer heading and title label, mirroring the LG block (D14).
+  era: z.string().min(1),
   role: z.string().min(1),
   rail: z.string().min(1),
   dates: z.string().min(1),
@@ -126,6 +130,26 @@ export const projectsSchema = z
     'slugs are unique'
   );
 
+// Site chrome: section headings may carry voice; the tagline and footer line are optional slots
+// that render no element while empty (D14).
+export const siteCopySchema = z.object({
+  headings: z.object({
+    about: z.string().min(1),
+    work: z.string().min(1),
+    experience: z.string().min(1),
+    skills: z.string().min(1)
+  }),
+  tagline: z.string(),
+  footerLine: z.string(),
+  notFound: z.object({
+    title: z.string().min(1),
+    body: z.string().min(1),
+    home: z.string().min(1)
+  })
+});
+
+export type SiteImage = z.infer<typeof imageSchema>;
+export type SiteCopy = z.infer<typeof siteCopySchema>;
 export type Link = z.infer<typeof linkSchema>;
 export type Employer = z.infer<typeof employerSchema>;
 export type EarlierRole = z.infer<typeof earlierRoleSchema>;

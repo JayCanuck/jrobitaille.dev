@@ -127,6 +127,7 @@ export const earlier: EarlierRole[] = [
   {
     id: 'EXP',
     org: 'Experis IT',
+    era: 'Enyo framework team, LG Silicon Valley Lab',
     role: 'Software Engineer (contract at LG)',
     rail: 'Software Engineer (contract at LG)',
     dates: 'May 2013 to April 2015',
@@ -145,6 +146,7 @@ export const earlier: EarlierRole[] = [
   {
     id: 'CC',
     org: 'Canuck Coding',
+    era: 'webOS homebrew development practice',
     role: 'Founder, Winnipeg',
     rail: 'Software Developer (self-employed)',
     dates: 'Dec 2009 to May 2013',

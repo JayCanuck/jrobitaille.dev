@@ -1,49 +1,50 @@
-import Image from 'next/image';
-
+import { badgeVariants } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Picture } from '@/components/ui/picture';
 import type { Project } from '@/content/schema';
 
 interface ProjectCardProps {
   project: Project;
 }
 
-const linkClass =
-  'underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none';
+const chipClass = badgeVariants({
+  variant: 'outline',
+  className: 'h-7 px-2.5 text-label hover:border-brand hover:text-brand-text'
+});
 
-// Title, a one-line blurb clamped to two lines so every card is the same height, and a footer row
-// with the proof links and the year span (D13). The 16:10 image slot is reserved for Phase 3.
+// Title, one-line blurb (schema caps it at 100 characters), a footer row with link chips and the
+// year span pinned right (D13). The 16:10 slot shows the image or a short hatch pattern until one
+// exists. Container queries size the title by card width, not viewport.
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Card className="h-full w-full pt-0">
+    <Card className="@container h-full w-full gap-3 pt-0 transition-[transform,box-shadow] duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5">
       {project.image ? (
-        <Image
-          src={project.image.src}
-          alt={project.image.alt}
-          width={project.image.width}
-          height={project.image.height}
-          className="aspect-[16/10] w-full object-cover"
+        <Picture
+          image={project.image}
+          className="block"
+          imgClassName="aspect-[16/10] w-full object-cover"
         />
       ) : (
-        <div aria-hidden="true" className="aspect-[16/10] w-full bg-muted" />
+        <div aria-hidden="true" className="slot-pattern aspect-[16/10] w-full" />
       )}
       <CardHeader>
-        <h3 className="text-base leading-snug font-medium">{project.title}</h3>
+        <h3 className="text-base leading-snug font-semibold @md:text-lg">{project.title}</h3>
       </CardHeader>
-      <CardContent>
-        <p className="line-clamp-2">{project.blurb}</p>
+      <CardContent className="flex-1">
+        <p>{project.blurb}</p>
       </CardContent>
-      <CardFooter className="mt-auto justify-between gap-4 text-sm">
-        <span className="flex flex-wrap gap-4">
-          <a href={project.link.href} rel="noopener noreferrer" className={linkClass}>
-            {project.link.label}
+      <CardFooter className="flex-wrap gap-2">
+        <a href={project.link.href} rel="noopener noreferrer" className={chipClass}>
+          {project.link.label}
+        </a>
+        {project.secondaryLink && (
+          <a href={project.secondaryLink.href} rel="noopener noreferrer" className={chipClass}>
+            {project.secondaryLink.label}
           </a>
-          {project.secondaryLink && (
-            <a href={project.secondaryLink.href} rel="noopener noreferrer" className={linkClass}>
-              {project.secondaryLink.label}
-            </a>
-          )}
+        )}
+        <span className="ml-auto shrink-0 font-mono text-label text-muted-foreground">
+          {project.era}
         </span>
-        <span className="text-muted-foreground">{project.era}</span>
       </CardFooter>
     </Card>
   );

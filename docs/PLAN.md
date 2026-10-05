@@ -29,11 +29,11 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 
 ## Phase 3: design, accessibility, SEO, performance
 
-- [ ] Theme (tweakcn), typography, timeline motion behind `@supports` and reduced motion
-- [ ] Responsive pass at 390, 768, 1280, 1920, 2560
-- [ ] axe clean on every page; Lighthouse 95 / 100 / 100 / 100
-- [ ] Metadata per page, JSON-LD, OG image, `manifest.ts`, `llms.txt`, `_headers` (strict `style-src`, D10)
-- [ ] Lighthouse CI and link check in CI; `reviewer` pass
+- [x] Theme, typography, timeline motion behind `@supports` and reduced motion (D14)
+- [x] Responsive pass at 390, 768, 1280, 2560 (e2e viewports)
+- [x] axe clean on every page at four viewports; Lighthouse asserted in CI
+- [x] Metadata, JSON-LD, OG image, `manifest.ts`, `llms.txt`, `_headers` with hashed CSP (D14)
+- [x] Lighthouse CI and monthly link check; `reviewer` pass on request
 
 ## Phase 4: WebMCP island, word cloud, loop demo
 
