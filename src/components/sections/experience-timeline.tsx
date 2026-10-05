@@ -3,6 +3,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { earlier, employer } from '@/content/experience';
 import type { Link } from '@/content/schema';
 import { siteCopy } from '@/content/site';
+import { layoutTimeline, yearSpan } from '@/lib/timeline';
 import { cn } from '@/lib/utils';
 
 interface EraView {
@@ -14,89 +15,116 @@ interface EraView {
   link?: Link;
 }
 
-// Every block has the same order: employer heading (h3), title label, era nodes (h4) (D13, D14).
-const blocks = [
-  {
-    id: 'LG',
-    heading: `${employer.name}, ${employer.years}`,
-    groups: employer.titles.map(title => ({ rail: title.rail, eras: title.eras }))
-  },
-  ...earlier.map(role => ({
-    id: role.id,
-    heading: role.org,
-    groups: [
-      {
-        rail: role.rail,
-        eras: [
-          {
-            id: role.id,
-            name: role.era,
-            years: role.years,
-            desc: role.desc,
-            highlights: role.highlights,
-            link: role.link
-          }
-        ] as EraView[]
+type Item =
+  | { kind: 'employer'; key: string; heading: string }
+  | { kind: 'title'; key: string; rail: string }
+  | { kind: 'era'; key: string; era: EraView };
+
+// One flat list in page order: employer heading, title rung, era nodes (D13, D14), the earlier
+// roles mirroring the LG block. The placement helper assigns each item its grid row at 1024+.
+const items: Item[] = [
+  { kind: 'employer', key: 'LG', heading: `${employer.name}, ${employer.years}` },
+  ...employer.titles.flatMap(title => [
+    { kind: 'title', key: `${title.rail}-LG`, rail: title.rail } as const,
+    ...title.eras.map(era => ({ kind: 'era', key: era.id, era }) as const)
+  ]),
+  ...earlier.flatMap(role => [
+    { kind: 'employer', key: role.id, heading: role.org } as const,
+    { kind: 'title', key: `${role.rail}-${role.id}`, rail: role.rail } as const,
+    {
+      kind: 'era',
+      key: `${role.id}-era`,
+      era: {
+        id: role.id,
+        name: role.era,
+        years: role.years,
+        desc: role.desc,
+        highlights: role.highlights,
+        link: role.link
       }
-    ]
-  }))
+    } as const
+  ])
 ];
 
-const centered = 'md:self-center md:bg-background md:px-3 md:text-center';
+const placed = layoutTimeline(items);
 
-// Alternating cards on a center rail from 768 px, a single left rail below. Nodes reveal with
-// scroll-driven animation where supported; otherwise they are simply visible.
+// Dot on the single rail below 1024 px; at 1024+ the label knocks out the centre rail instead.
+const labelClass =
+  'relative pl-16 before:absolute before:top-1.5 before:left-[calc(1.5rem-6px)] before:size-3 before:rounded-full before:border-2 before:border-brand before:bg-background lg:col-span-3 lg:col-start-1 lg:pl-0 lg:text-center lg:before:hidden';
+const knockout = 'relative inline-block bg-background px-3';
+
+// Single left rail with round year badges below 1024 px; a centre rail from 1024 px where the cards
+// alternate sides and interleave, each starting at the previous card's midpoint (D15).
 export function ExperienceTimeline() {
-  let index = 0;
   return (
-    <section aria-labelledby="experience-heading" className="flex flex-col gap-8">
+    <section
+      id="experience"
+      aria-labelledby="experience-heading"
+      className="flex flex-col gap-8 pt-16 lg:pt-24"
+    >
       <SectionHeading id="experience-heading">{siteCopy.headings.experience}</SectionHeading>
-      <ol className="relative ml-2 flex flex-col gap-8 border-l-2 border-brand/40 pl-6 md:ml-0 md:border-l-0 md:pl-0 md:before:absolute md:before:inset-y-0 md:before:left-1/2 md:before:w-0.5 md:before:-translate-x-1/2 md:before:bg-brand/40">
-        {blocks.map(block => (
-          <li key={block.id} className="flex flex-col gap-6">
-            <h3 className={cn('text-xl font-semibold tracking-tight', centered)}>
-              {block.heading}
-            </h3>
-            {block.groups.map(group => (
-              <div key={group.rail} className="flex flex-col gap-6">
-                <p data-rail className={cn('font-mono text-label text-brand-text', centered)}>
+      <ol className="relative flex flex-col gap-6 before:absolute before:inset-y-2 before:left-6 before:w-px before:bg-border lg:grid lg:grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] lg:gap-x-6 lg:gap-y-8 lg:before:left-1/2">
+        {placed.map(item => {
+          const rowClass = `lg:row-start-${String(item.row)}`;
+          if (item.kind === 'employer') {
+            return (
+              <li key={item.key} className={cn(labelClass, rowClass)}>
+                <h3 className={cn(knockout, 'text-lg font-semibold tracking-tight')}>
+                  {item.heading}
+                </h3>
+              </li>
+            );
+          }
+          if (item.kind === 'title') {
+            return (
+              <li key={item.key} className={cn(labelClass, rowClass)}>
+                <p
+                  data-rail
+                  className={cn(
+                    knockout,
+                    'font-mono text-label font-semibold tracking-wider text-brand-text uppercase'
+                  )}
+                >
                   <span className="sr-only">Title: </span>
-                  {group.rail}
+                  {item.rail}
                 </p>
-                <ol className="flex flex-col gap-6">
-                  {group.eras.map(era => {
-                    const side = index++ % 2 === 0 ? 'left' : 'right';
-                    return (
-                      <li
-                        key={era.id}
-                        className="reveal relative before:absolute before:top-6 before:-left-[calc(1.5rem+7px)] before:size-3 before:rounded-full before:bg-brand before:ring-4 before:ring-background md:grid md:grid-cols-[1fr_2rem_1fr] md:items-start md:before:hidden"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="col-start-2 row-start-1 mx-auto mt-6 hidden size-3 rounded-full bg-brand ring-4 ring-background md:block"
-                        />
-                        <div
-                          className={cn(
-                            'md:row-start-1',
-                            side === 'left' ? 'md:col-start-1' : 'md:col-start-3'
-                          )}
-                        >
-                          <TimelineNode
-                            name={era.name}
-                            years={era.years}
-                            desc={era.desc}
-                            highlights={era.highlights}
-                            link={era.link}
-                          />
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            ))}
-          </li>
-        ))}
+              </li>
+            );
+          }
+          const { start, end } = yearSpan(item.era.years);
+          const side = item.side ?? 'left';
+          return (
+            <li
+              key={item.key}
+              className={cn(
+                'relative pl-16 lg:row-span-2 lg:pl-0',
+                rowClass,
+                side === 'left' ? 'lg:col-start-1' : 'lg:col-start-3'
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'badge-in absolute top-0 left-0 flex size-12 flex-col items-center justify-center rounded-full bg-brand font-mono text-xs leading-none font-bold text-brand-foreground ring-[5px] ring-background lg:size-14 lg:text-[0.8125rem]',
+                  side === 'left'
+                    ? 'lg:left-[calc(100%+1.5rem)]'
+                    : 'lg:right-[calc(100%+1.5rem)] lg:left-auto'
+                )}
+              >
+                {start}
+                {end && <span className="mt-0.5 text-[0.5625rem] font-medium">to {end}</span>}
+              </span>
+              <TimelineNode
+                name={item.era.name}
+                years={item.era.years}
+                desc={item.era.desc}
+                highlights={item.era.highlights}
+                link={item.era.link}
+                side={side}
+              />
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

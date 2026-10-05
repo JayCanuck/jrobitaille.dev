@@ -1,66 +1,48 @@
-import { buttonVariants } from '@/components/ui/button';
+import { HeroActions } from '@/components/sections/hero-actions';
 import { Picture } from '@/components/ui/picture';
 import { images } from '@/content/images';
 import { profile } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 
-// The three links a recruiter needs (spec §2). Plain anchors with the button styles: no Base UI client JS.
-const links = [
-  { label: 'Resume (PDF)', href: profile.links.resume, external: false },
-  { label: 'LinkedIn', href: profile.links.linkedin, external: true },
-  { label: 'GitHub', href: profile.links.github, external: true }
-];
-
-// Cover band at a fixed 16:5 with explicit dimensions (no layout shift); the image drifts a little
-// under scroll where scroll-driven animation is supported and motion is wanted, otherwise static.
+// Full-width cover band at 16:5, capped near 38vh on desktop, with an accent-tinted fade in dark
+// mode; the avatar overlaps its bottom edge and the name sits centred beneath (D15). The band
+// drifts under scroll and the hero staggers in on load, both motion-safe only; the section
+// publishes the view timeline the fixed header fades in against.
 export function Hero() {
   return (
-    <section aria-labelledby="hero-heading" className="flex flex-col">
-      <div className="relative">
-        <div className="aspect-[16/5] w-full overflow-hidden rounded-2xl bg-muted">
-          <Picture
-            image={images.cover}
-            priority
-            sizes="(min-width: 1184px) 1120px, calc(100vw - 2rem)"
-            className="block h-full w-full"
-            imgClassName="parallax h-full w-full object-cover"
-          />
-        </div>
+    <section aria-labelledby="hero-heading" className="hero-timeline">
+      <div className="relative overflow-hidden bg-muted">
+        <Picture
+          image={images.cover}
+          priority
+          sizes="100vw"
+          className="block"
+          imgClassName="parallax aspect-[16/5] w-full object-cover lg:max-h-[38vh]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-linear-to-b from-transparent to-background/70 dark:from-brand/15"
+        />
+      </div>
+      <div className="stagger mx-auto flex w-full max-w-6xl flex-col items-center px-4 text-center sm:px-6">
         <Picture
           image={images.avatar}
           priority
-          className="absolute -bottom-10 left-5 block sm:-bottom-12 sm:left-8"
-          imgClassName="size-24 rounded-full bg-muted ring-4 ring-background sm:size-32"
+          className="-mt-[60px] block sm:-mt-20"
+          imgClassName="size-[120px] rounded-full bg-muted shadow-lg ring-[6px] ring-background sm:size-40"
         />
-      </div>
-      <div className="mt-14 flex max-w-[72ch] flex-col gap-3 px-1 sm:mt-16 sm:px-2">
-        <h1 id="hero-heading" className="text-display font-semibold tracking-tight">
+        <h1 id="hero-heading" className="mt-5 text-display font-semibold tracking-tight">
           {profile.name}
         </h1>
-        <p className="text-lg text-muted-foreground">{profile.title}</p>
-        <p>{profile.headline}</p>
+        <p className="mt-2 text-xl font-medium">{profile.title}</p>
+        <p className="mt-3 max-w-[44ch] text-muted-foreground">{profile.headline}</p>
         {siteCopy.tagline && (
-          <p className="font-mono text-label text-brand-text">{siteCopy.tagline}</p>
+          <p className="mt-2 font-mono text-label text-brand-text">{siteCopy.tagline}</p>
         )}
-        <p className="font-mono text-label text-muted-foreground">{profile.location}</p>
-        <ul className="mt-2 flex flex-wrap gap-3">
-          {links.map(link => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                rel={link.external ? 'noopener noreferrer' : undefined}
-                className={buttonVariants({
-                  variant: 'outline',
-                  size: 'lg',
-                  className: 'hover:border-brand hover:text-brand-text'
-                })}
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <p className="text-muted-foreground">{profile.availability}</p>
+        <p className="mt-2 font-mono text-label text-muted-foreground">{profile.location}</p>
+        <div className="mt-6">
+          <HeroActions />
+        </div>
       </div>
     </section>
   );

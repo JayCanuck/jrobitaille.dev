@@ -20,13 +20,22 @@ const IMAGES = [
     widths: [640, 1280]
   },
   { name: 'avatar', file: 'avatar.jpg', width: 320, height: 320, alt: 'Jason Robitaille' },
-  { name: 'enact-cli', file: 'enactjs.jpg', width: 1200, height: 750, alt: 'Enact framework site' },
+  // Card images: 1200 wide for the widest slot, 640 for the narrow ones and phones.
+  {
+    name: 'enact-cli',
+    file: 'enactjs.jpg',
+    width: 1200,
+    height: 750,
+    alt: 'Enact framework site',
+    widths: [640]
+  },
   {
     name: 'svl-simulator',
     file: 'svlsimulator.jpg',
     width: 1200,
     height: 750,
-    alt: 'SVL Simulator web platform'
+    alt: 'SVL Simulator web platform',
+    widths: [640]
   },
   {
     name: 'retailverse-web',
@@ -34,6 +43,7 @@ const IMAGES = [
     width: 1200,
     height: 750,
     alt: 'RetailVerse Web 3D viewer showing an LG washer',
+    widths: [640],
     optional: true
   },
   {
@@ -42,6 +52,7 @@ const IMAGES = [
     width: 1200,
     height: 750,
     alt: 'WebOS Quick Install desktop application',
+    widths: [640],
     optional: true
   },
   {
@@ -50,6 +61,7 @@ const IMAGES = [
     width: 1200,
     height: 750,
     alt: 'Terminal showing gamelist-utils --help output',
+    widths: [640],
     optional: true
   },
   {

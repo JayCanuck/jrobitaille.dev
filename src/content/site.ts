@@ -9,8 +9,8 @@ export const siteCopy: SiteCopy = {
     experience: 'Where I’ve been',
     skills: 'Toolbox'
   },
-  tagline: 'tagline',
-  footerLine: 'footer line',
+  tagline: '',
+  footerLine: '',
   notFound: {
     title: 'Page not found',
     body: 'There is nothing at this address. The cow is fine.',

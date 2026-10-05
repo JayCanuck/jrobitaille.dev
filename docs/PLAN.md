@@ -35,6 +35,15 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 - [x] Metadata, JSON-LD, OG image, `manifest.ts`, `llms.txt`, `_headers` with hashed CSP (D14)
 - [x] Lighthouse CI and monthly link check; `reviewer` pass on request
 
+## Phase 3b: composition redesign
+
+- [x] Study three reference sites and the previous site; pattern rules in `docs/design-notes.md`
+- [x] Three static mockups on the real tokens and content, screenshotted at four widths in both schemes; C picked (D15)
+- [x] Cover band hero, fixed header, About beside Toolbox, card grid, interleaved timeline as Server Components
+- [x] Motion policy (hero stagger, scroll-driven reveals never below 0.4 opacity, header fade) behind `@supports` and reduced motion
+- [x] Content fixes: slots empty, "15+ years", whole-card links, availability line removed, homebrew image reframed, 640 px card variants
+- [x] e2e updated for the new structure; visual check at 390, 1024, 1440, 2560 in both schemes plus Firefox
+
 ## Phase 4: WebMCP island, word cloud, loop demo
 
 - [ ] WebMCP tools from content, polyfill fallback, badge, `/api/profile.json`, Vitest coverage, origin-trial meta

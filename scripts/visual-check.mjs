@@ -1,11 +1,14 @@
 // visual-check: screenshot the built export at 390, 1280 and 2560 px in both color schemes.
-// Usage: node scripts/visual-check.mjs [--path /nope] [--full] [--label name]
+// Usage: node scripts/visual-check.mjs [--path /nope] [--full] [--label name] [--widths 390,1024,1440,2560]
 // (--accent name sets data-accent on <html> for a token experiment; the stylesheet must define it.)
 // Requires `npm run build` first; serves ./out with wrangler dev on port 8788.
+// --file some.html screenshots a local static file (a mockup) instead, with no server.
+// --browser firefox uses Firefox (npx playwright install firefox) to check the no-scroll-driven fallback.
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { chromium } from '@playwright/test';
+import { basename, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { chromium, firefox } from '@playwright/test';
 
 const args = process.argv.slice(2);
 const opt = name => {
@@ -15,18 +18,25 @@ const opt = name => {
 const accent = opt('accent');
 const path = opt('path') ?? '/';
 const full = args.includes('--full');
-const label = opt('label') ?? accent ?? 'default';
+const file = opt('file');
+const browserName = opt('browser') === 'firefox' ? 'firefox' : 'chromium';
+const label =
+  (opt('label') ?? accent ?? (file ? basename(String(file), '.html') : 'default')) +
+  (browserName === 'firefox' ? '-firefox' : '');
 const port = 8788;
 const base = `http://127.0.0.1:${port}`;
-const widths = [390, 1280, 2560];
+const widths = opt('widths') ? String(opt('widths')).split(',').map(Number) : [390, 1280, 2560];
 const outDir = join('.visual', String(label));
 mkdirSync(outDir, { recursive: true });
 
-const server = spawn('npx', ['wrangler', 'dev', '--port', String(port)], {
-  stdio: 'ignore',
-  shell: process.platform === 'win32'
-});
+const server = file
+  ? undefined
+  : spawn('npx', ['wrangler', 'dev', '--port', String(port)], {
+      stdio: 'ignore',
+      shell: process.platform === 'win32'
+    });
 const stop = () => {
+  if (!server) return;
   if (process.platform === 'win32') spawn('taskkill', ['/pid', String(server.pid), '/T', '/F']);
   else server.kill();
 };
@@ -45,8 +55,9 @@ const waitFor = async (url, tries = 60) => {
   throw new Error(`server at ${url} did not start`);
 };
 
-await waitFor(base);
-const browser = await chromium.launch();
+if (!file) await waitFor(base);
+const target = file ? pathToFileURL(resolve(String(file))).href : `${base}${path}`;
+const browser = await (browserName === 'firefox' ? firefox : chromium).launch();
 for (const scheme of ['light', 'dark']) {
   for (const width of widths) {
     const context = await browser.newContext({
@@ -64,7 +75,7 @@ for (const scheme of ['light', 'dark']) {
         });
       }, String(accent));
     }
-    await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
+    await page.goto(target, { waitUntil: 'networkidle' });
     // Walk the page so lazy images load and fonts settle before a full-page capture.
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 600) {

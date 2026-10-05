@@ -1,44 +1,62 @@
+import { ArrowUpRight } from 'lucide-react';
+
 import { badgeVariants } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Picture } from '@/components/ui/picture';
 import type { Project } from '@/content/schema';
+import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
   project: Project;
 }
 
 const chipClass = badgeVariants({
-  variant: 'outline',
-  className: 'h-7 px-2.5 text-label hover:border-brand hover:text-brand-text'
+  variant: 'secondary',
+  className: 'h-6 border-transparent bg-brand-soft px-2.5 font-mono text-label text-brand-text'
 });
 
-// Title, one-line blurb (schema caps it at 100 characters), a footer row with link chips and the
-// year span pinned right (D13). The 16:10 slot shows the image or a short hatch pattern until one
-// exists. Container queries size the title by card width, not viewport.
+// Image on top, title, one-line blurb, then the proof chips and the year span (D13). The whole
+// card is the primary link: the title anchor stretches over the card, the primary label is a plain
+// chip inside it, and the secondary link stays its own anchor above the stretched one (D15).
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Card className="@container h-full w-full gap-3 pt-0 transition-[transform,box-shadow] duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5">
+    <Card className="group/project relative w-full gap-3 pt-0 hover:shadow-md hover:ring-foreground/25 motion-safe:transition-[transform,box-shadow] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5">
       {project.image ? (
         <Picture
           image={project.image}
+          sizes="(min-width: 1024px) 560px, (min-width: 640px) 50vw, 100vw"
           className="block"
-          imgClassName="aspect-[16/10] w-full object-cover"
+          imgClassName="aspect-[16/10] w-full border-b object-cover"
         />
       ) : (
         <div aria-hidden="true" className="slot-pattern aspect-[16/10] w-full" />
       )}
       <CardHeader>
-        <h3 className="text-base leading-snug font-semibold @md:text-lg">{project.title}</h3>
+        <h3 className="text-base leading-snug font-semibold">
+          <a
+            href={project.link.href}
+            rel="noopener noreferrer"
+            className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+          >
+            {project.title}
+            <ArrowUpRight
+              aria-hidden="true"
+              className="ml-1 inline size-[1em] align-[-0.1em] text-muted-foreground group-hover/project:text-brand-text motion-safe:transition-transform motion-safe:group-hover/project:translate-x-px motion-safe:group-hover/project:-translate-y-px"
+            />
+          </a>
+        </h3>
       </CardHeader>
       <CardContent className="flex-1">
-        <p>{project.blurb}</p>
+        <p className="text-muted-foreground">{project.blurb}</p>
       </CardContent>
-      <CardFooter className="flex-wrap gap-2">
-        <a href={project.link.href} rel="noopener noreferrer" className={chipClass}>
-          {project.link.label}
-        </a>
+      <CardFooter className="flex-wrap gap-2 border-t-0 bg-transparent pt-0">
+        <span className={chipClass}>{project.link.label}</span>
         {project.secondaryLink && (
-          <a href={project.secondaryLink.href} rel="noopener noreferrer" className={chipClass}>
+          <a
+            href={project.secondaryLink.href}
+            rel="noopener noreferrer"
+            className={cn(chipClass, 'relative z-10')}
+          >
             {project.secondaryLink.label}
           </a>
         )}

@@ -4,15 +4,23 @@ import { projects } from '@/content/projects';
 import { siteCopy } from '@/content/site';
 import { cn } from '@/lib/utils';
 
-// Five proof-linked cards (D11): one column under 640, two from 768, three from 1280 where the first
-// card spans two columns so five cards fill a 3+3 grid. Height comes from the grid, not truncation.
+// Five proof-linked image cards (D11) in a grid: one column, two from 640 px, and from 1024 px a
+// six-column grid where the first three cards take two columns each and the last two take three,
+// so five cards fill two rows. Cards rise 8 px as they enter where scroll-driven animation runs.
 export function SelectedWork() {
   return (
-    <section aria-labelledby="work-heading" className="flex flex-col gap-6">
+    <section
+      id="work"
+      aria-labelledby="work-heading"
+      className="flex flex-col gap-6 pt-16 lg:pt-24"
+    >
       <SectionHeading id="work-heading">{siteCopy.headings.work}</SectionHeading>
-      <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
         {projects.map((project, index) => (
-          <li key={project.slug} className={cn('flex', index === 0 && 'xl:col-span-2')}>
+          <li
+            key={project.slug}
+            className={cn('rise flex', index < 3 ? 'lg:col-span-2' : 'lg:col-span-3')}
+          >
             <ProjectCard project={project} />
           </li>
         ))}
