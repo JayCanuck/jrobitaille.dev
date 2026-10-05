@@ -58,7 +58,7 @@ Technical, quiet, with personality (D14): crisp where recruiters scan (hero fact
 
 ## 5. Engineering rules
 
-The list in `AGENTS.md` is authoritative: static first, no `useEffect` for data or layout, no layout shift, small files, accessibility as a CI gate, evergreen browsers with progressive enhancement (Next's modern default compile target, no browserslist; revisit if one is ever needed, D10), SEO built in (per-page metadata, JSON-LD `Person` and `WebSite`, sitemap, permissive robots including AI crawlers, manifest, favicons, `llms.txt`), a performance budget (initial JS under 120 KB gzipped, LCP under 1.5 s on throttled 4G, CLS 0), security headers, and the public content rules in `.claude/rules/content.md`.
+The list in `AGENTS.md` is authoritative: static first, no `useEffect` for data or layout, no layout shift, small files, accessibility as a CI gate, evergreen browsers with progressive enhancement (Next's modern default compile target, no browserslist; revisit if one is ever needed, D10), SEO built in (per-page metadata, JSON-LD `Person` and `WebSite`, sitemap, permissive robots including AI crawlers, manifest, favicons, `llms.txt`), a performance budget (initial JS under 150 KB gzipped for evergreen browsers, LCP under 2.0 s on throttled 4G, CLS 0; D14), security headers, and the public content rules in `.claude/rules/content.md`.
 
 ## 6. Agentic build workflow
 

@@ -6,10 +6,10 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { expect, test } from '@playwright/test';
 
-// AGENTS.md asks for under 120 KB gzipped on home. Measured 2026-10-04 with Next 16.3.8 and
-// React 19.3: the framework runtime alone (React DOM + app router) is 143.8 KB gzipped for evergreen
-// browsers; site-owned code is a few KB. This guard holds the line at that baseline plus headroom so
-// a dependency or an island cannot grow it unnoticed; the rule itself is open (see D14).
+// AGENTS.md budget: 150 KB gzipped on home for evergreen browsers. Measured 2026-10-04 with Next
+// 16.3.8 and React 19.3: React DOM, the Flight client and the app router 116.8 KB, Next helpers
+// 27.0 KB, site code 0 KB; 143.8 KB in all. The guard holds that line so a dependency or an island
+// cannot grow it unnoticed (D14).
 const JS_BUDGET_BYTES = 150 * 1024;
 
 const walk = (dir: string): string[] =>
