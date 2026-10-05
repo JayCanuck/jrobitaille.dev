@@ -37,7 +37,7 @@ export const projects: Project[] = [
     title: 'SVL Simulator cloud platform',
     era: '2020 to 2022',
     blurb:
-      'Web platform for LG’s open-source autonomous-driving simulator. Full-stack features and the public site.',
+      'Web platform for LG’s open-source driving simulator. Full-stack features and the public site.',
     description:
       'The web platform and public site for LG’s open-source autonomous-driving simulator. I shipped full-stack features there, from sharing to the API token system, and wrote its marketing site.',
     link: { label: 'GitHub', href: 'https://github.com/lgsvl/svlsimulator.com' }
@@ -58,7 +58,7 @@ export const projects: Project[] = [
     title: 'gamelist-utils and muos.js',
     era: '2021 to present',
     blurb:
-      'TypeScript tooling for retro handhelds: an EmulationStation romset toolbox and typed muOS definitions, on npm.',
+      'TypeScript tooling for retro handhelds: EmulationStation romset toolbox and typed muOS definitions.',
     description:
       'What I build when nobody assigns it: a TypeScript toolbox for EmulationStation romsets, and typed definitions for muOS. Both on npm, with tests and CI.',
     link: { label: 'GitHub', href: 'https://github.com/JayCanuck/gamelist-utils' },

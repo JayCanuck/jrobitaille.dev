@@ -104,8 +104,8 @@ export const profileSchema = z.object({
   aboutLong: z.array(z.string().min(1)).min(1)
 });
 
-// One line per card (D13). The approved one-liners run to 110 characters, so that is the cap.
-export const BLURB_MAX_LENGTH = 110;
+// One line per card (D13): hard cap 100 characters.
+export const BLURB_MAX_LENGTH = 100;
 
 const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
