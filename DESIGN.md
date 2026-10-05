@@ -184,7 +184,7 @@ Geist for body and headings. Geist Mono for labels, dates, the timeline rungs, c
 
 Four weights are in use: 400 for body text, 500 for the title line under the name, chips, tags, group labels and the header nav (shadcn's badge and button defaults), 600 for the name, headings and card titles, 700 for the year badge.
 
-The scale is fluid (`fluid` above): `display` for the name, `h2` for section headings, `body` for everything readable, `label` for mono labels. Each `typography` token holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Card titles and timeline names are 16px at 600; the year badge is 12px (13px from 1024px) with its end year at 9px.
+The scale is fluid (`fluid` above): `display` for the name, `h2` for section headings, `body` for everything readable, `label` for mono labels. Each `typography` token holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Card titles and timeline names are 16px at 600; the year badge is 12px (13px from 1024px).
 
 Section headings carry the voice ("Hello", "Things I've shipped", "Where I've been", "Toolbox"); nothing else is written with voice.
 
@@ -216,7 +216,7 @@ A project card is one link to its primary proof: the title anchor stretches over
 
 Chips are shadcn badges, 24px tall, mono label, pill-shaped: proof links use the `secondary` variant with the accent soft fill and accent text, toolbox tags the `outline` variant with the muted fill. Prose links are underlined with a muted underline and take the accent on hover.
 
-A timeline node is a bordered card with the era name, years in mono, descriptor, one or two highlights with accent markers and a proof chip; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year over a small end year.
+A timeline node is a bordered card with the era name, years in mono, descriptor, one or two highlights with accent markers and a proof chip; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year only; the card beside it carries the full range.
 
 Every interactive element has a hover state and a visible `focus-visible` ring. Every image has a sized slot: explicit width and height, AVIF with WebP fallback, a 640px variant where the slot is narrow.
 
