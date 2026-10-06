@@ -1,9 +1,10 @@
 // The skills cloud (D18): the chips are the view at first paint in every case; once the cloud has
 // mounted the canvas overlays them inside the same reserved box, the chips fade but stay in the DOM
 // and the accessibility tree, and the List/Cloud control appears. Reduced motion, reduced data,
-// saveData, no WebGL and no interaction each leave the chips with no cloud chunk requested.
+// saveData, no WebGL and no input each leave the chips with no cloud chunk requested. Intent is an
+// input event, never a scroll event (D18).
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
 import { skills } from '../src/content/resume';
 import { siteCopy } from '../src/content/site';
@@ -137,33 +138,63 @@ test('no WebGL leaves the chips and requests no cloud chunk', async ({ page, req
   expect(await cloudChunks(page, request)).toEqual([]);
 });
 
-const tallPhonePage = async (browser: Browser, baseURL: string | undefined) => {
-  const context = await browser.newContext({ viewport: { width: 390, height: 2400 }, baseURL });
-  return { context, page: await context.newPage() };
+// A hash arrival puts the box in view and dispatches a scroll event with no input from the visitor.
+const arriveAtSkills = async (page: Page) => {
+  await page.addInitScript(() => {
+    (window as { __scrolls?: number }).__scrolls = 0;
+    window.addEventListener('scroll', () => {
+      (window as { __scrolls?: number }).__scrolls =
+        ((window as { __scrolls?: number }).__scrolls ?? 0) + 1;
+    });
+  });
+  await page.goto('/#skills', { waitUntil: 'load' });
+  await settle(page);
+  const state = await page.evaluate(() => {
+    const element = document.querySelector('[data-island="cloud"]');
+    const top = element?.getBoundingClientRect().top ?? Infinity;
+    return {
+      inView: top < window.innerHeight,
+      scrollEvents: (window as { __scrolls?: number }).__scrolls ?? 0
+    };
+  });
+  expect(state.inView).toBe(true);
+  expect(state.scrollEvents).toBeGreaterThan(0);
 };
 
-test('on the phone, the slot in view at first paint loads nothing; one real scroll loads the cloud', async ({
-  browser,
-  baseURL,
+const gzippedTotal = async (request: APIRequestContext, urls: string[]) => {
+  const { gzipSync } = await import('node:zlib');
+  let total = 0;
+  for (const url of urls) total += gzipSync(await (await request.get(url)).body()).length;
+  return total;
+};
+
+test('on the phone, a hash arrival with no input loads nothing; one wheel then loads the cloud within budget', async ({
+  page,
   request
 }) => {
   test.skip(test.info().project.name !== 'mobile-390', 'the phone project only');
-  const { context, page } = await tallPhonePage(browser, baseURL);
-  await page.goto('/', { waitUntil: 'load' });
-  // The box is inside the 2400 px viewport without any scroll: idle and near, but no interaction.
-  const inView = await box(page).evaluate(
-    element => element.getBoundingClientRect().top < window.innerHeight
-  );
-  expect(inView).toBe(true);
-  await settle(page);
+  await arriveAtSkills(page);
   expect(await cloudChunks(page, request)).toEqual([]);
   await expect(canvas(page)).toHaveCount(0);
 
-  await page.mouse.move(100, 100);
-  await page.mouse.wheel(0, 40);
+  await page.mouse.wheel(0, 1);
+  await expect(canvas(page)).toBeAttached({ timeout: 20_000 });
+  const chunks = await cloudChunks(page, request);
+  expect(chunks.length).toBeGreaterThan(0);
+  expect(await gzippedTotal(request, chunks)).toBeLessThan(260 * 1024);
+});
+
+test('on the phone, a pointer move alone with the box in view loads the cloud', async ({
+  page,
+  request
+}) => {
+  test.skip(test.info().project.name !== 'mobile-390', 'the phone project only');
+  await arriveAtSkills(page);
+  expect(await cloudChunks(page, request)).toEqual([]);
+
+  await page.mouse.move(200, 400);
   await expect(canvas(page)).toBeAttached({ timeout: 20_000 });
   expect((await cloudChunks(page, request)).length).toBeGreaterThan(0);
-  await context.close();
 });
 
 test('axe is clean before the cloud mounts, with it mounted, and back on the list', async ({

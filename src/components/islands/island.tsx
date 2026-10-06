@@ -72,7 +72,16 @@ const onIdle = (callback: () => void): Cleanup => {
   };
 };
 
-const INTERACTION_EVENTS = ['scroll', 'wheel', 'touchmove', 'keydown', 'pointerdown'] as const;
+// Intent means an input event, never a scroll event: hash arrivals, scroll restoration and anchor
+// navigation all dispatch `scroll` without the visitor doing anything (D18).
+const INTENT_EVENTS = [
+  'wheel',
+  'touchstart',
+  'touchmove',
+  'keydown',
+  'pointerdown',
+  'pointermove'
+] as const;
 
 // Never load the cloud for a visitor who asked for less motion or less data, or without WebGL.
 const cloudAllowed = () => {
@@ -85,7 +94,7 @@ const cloudAllowed = () => {
 };
 
 // The cloud loads only when all three hold (D18): the page went idle after load, the slot is within
-// 200 px of the viewport, and the visitor scrolled or interacted at least once after load. Being in
+// 200 px of the viewport, and the visitor gave one input event after load (wheel, touch, key or pointer; never a scroll). Being in
 // view at first paint is not enough on its own.
 const onCloudTrigger = (node: HTMLElement, callback: () => void): Cleanup => {
   if (!cloudAllowed()) return () => undefined;
@@ -104,7 +113,7 @@ const onCloudTrigger = (node: HTMLElement, callback: () => void): Cleanup => {
     interacted = true;
     check();
   };
-  for (const type of INTERACTION_EVENTS) {
+  for (const type of INTENT_EVENTS) {
     window.addEventListener(type, onInteraction, { passive: true });
   }
   const observer = new IntersectionObserver(
@@ -120,7 +129,7 @@ const onCloudTrigger = (node: HTMLElement, callback: () => void): Cleanup => {
     check();
   });
   const cleanup = () => {
-    for (const type of INTERACTION_EVENTS) window.removeEventListener(type, onInteraction);
+    for (const type of INTENT_EVENTS) window.removeEventListener(type, onInteraction);
     observer.disconnect();
     cancelIdle();
   };
