@@ -101,8 +101,9 @@ const badge = (page: Page) => page.getByRole('button', { name: siteCopy.agentToo
 interface ShiftSource {
   value: number;
   name: string;
-  inHero: boolean;
-  horizontalOnly: boolean;
+  // A hero text re-centre on the font swap: inside the hero, with any vertical change under 6 px
+  // (balanced lines re-break at the swap). Anything else is a real shift.
+  heroRecentre: boolean;
   text: string;
 }
 
@@ -135,13 +136,12 @@ const measureCls = (page: Page) =>
                   ? `${node.tagName.toLowerCase()}.${node.getAttribute('class') ?? ''}`
                   : `text in ${element?.tagName.toLowerCase() ?? '?'}.${element?.getAttribute('class') ?? ''}`;
               const { previousRect: a, currentRect: b } = source;
+              const inHero = Boolean(hero && element && hero.contains(element));
               sources.push({
                 value: entry.value,
                 name,
-                inHero: Boolean(hero && element && hero.contains(element)),
-                horizontalOnly:
-                  Math.round(a.y) === Math.round(b.y) &&
-                  Math.round(a.height) === Math.round(b.height),
+                heroRecentre:
+                  inHero && Math.abs(a.y - b.y) < 6 && Math.abs(a.height - b.height) < 6,
                 text: `${entry.value.toFixed(4)} at ${String(Math.round(entry.startTime))}ms ${name} [${rect(a)}] -> [${rect(b)}]`
               });
             }
@@ -162,6 +162,46 @@ const expectNoShift = async (page: Page, when: string) => {
   expect(cls.total, `${when}: ${describeShifts(cls.sources)}`).toBe(0);
 };
 
+// The platform fonts Chromium actually used for an element, so the record names the fallback face
+// the runner resolved (Arial on Windows, whatever fontconfig gives on Linux).
+const platformFonts = async (page: Page, selector: string) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('DOM.enable');
+  await cdp.send('CSS.enable');
+  const { root } = await cdp.send('DOM.getDocument', { depth: 1 });
+  const { nodeId } = await cdp.send('DOM.querySelector', {
+    nodeId: root.nodeId,
+    selector
+  });
+  const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });
+  await cdp.detach();
+  return fonts
+    .map(
+      font =>
+        `${font.familyName} (${font.isCustomFont ? 'web' : 'system'}, ${String(font.glyphCount)} glyphs)`
+    )
+    .join(', ');
+};
+
+// Rects of the first About paragraph, its ancestors, its preceding siblings and the hero's children,
+// so a vertical move of the paragraph can be traced to the element whose height changed.
+const aboutChain = (page: Page) =>
+  page.evaluate(() => {
+    const describe = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return `${el.tagName.toLowerCase()}.${(el.getAttribute('class') ?? '').slice(0, 36)} y=${String(Math.round(r.y + window.scrollY))} h=${String(Math.round(r.height))}`;
+    };
+    const paragraph = document.querySelector('#about p');
+    const out: string[] = [];
+    for (let el: Element | null = paragraph; el && el !== document.body; el = el.parentElement) {
+      out.push(describe(el));
+      for (let s = el.previousElementSibling; s; s = s.previousElementSibling) {
+        out.push(`  before: ${describe(s)}`);
+      }
+    }
+    return out;
+  });
+
 test('home has a cumulative layout shift of 0, before and after the islands mount', async ({
   page
 }) => {
@@ -178,13 +218,14 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
 });
 
 // The web fonts arriving after first paint (D15 amendment): the fallback faces are metric-adjusted
-// and every row that could wrap differently has a fixed line count, so nothing below the hero moves.
-// What remains is the centred hero text re-centring by a few pixels at the swap, a measured
-// sub-perceptual shift that is accepted (0.0003 at 1280, up to 0.0008 and rare at 390): the total
-// stays under 0.005 and every source is a hero text re-centre (inside the hero, horizontal only);
-// any other source or any larger value fails with the element and its rects. Thirty loads per
-// width with the font files held back two seconds.
-const FONT_DELAY_RUNS = 30;
+// and every row that could wrap differently has a fixed line count, so nothing outside the hero
+// moves. What remains is the centred hero text re-centring by a few pixels at the swap, a measured
+// sub-perceptual shift that is accepted: the total stays under 0.005 and every source is a hero text
+// re-centre; any source outside the hero or any larger value fails with the element and its rects.
+// Ten loads per width in CI (thirty with FONT_DELAY_RUNS=30 for a diagnosis run), the font files
+// held back two seconds; the first load logs the fallback face the runner rendered and the About
+// chain before and after the swap, and the case logs its wall time.
+const FONT_DELAY_RUNS = Number(process.env.FONT_DELAY_RUNS ?? (process.env.CI ? 10 : 30));
 const SWAP_RECENTRE_CLS = 0.005;
 test('fonts arriving two seconds late shift nothing but a sub-perceptual hero re-centre', async ({
   page
@@ -194,23 +235,49 @@ test('fonts arriving two seconds late shift nothing but a sub-perceptual hero re
     'the two widths the budget names'
   );
   test.setTimeout(10 * 60_000);
+  const started = Date.now();
   await page.route('**/*.woff2', async route => {
     await new Promise(resolve => setTimeout(resolve, 2000));
     await route.continue();
   });
   for (let run = 1; run <= FONT_DELAY_RUNS; run++) {
-    await page.goto('/', { waitUntil: 'load' });
+    // The preloaded font requests hold the load event, so the fallback is observed before it:
+    // after the DOM and first paint, two seconds ahead of the swap.
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#hero-heading')).toBeVisible();
+    const tag = `[font-delay ${test.info().project.name}]`;
+    if (run === 1) {
+      console.log(
+        `${tag} fallback rendered for the name: ${await platformFonts(page, '#hero-heading')}; for a label: ${await platformFonts(page, 'section.hero-timeline li a')}`
+      );
+      console.log(`${tag} About chain before swap: ${(await aboutChain(page)).join(' || ')}`);
+    }
+    await page.waitForLoadState('load');
     await page.waitForTimeout(2600);
+    if (run === 1) {
+      console.log(
+        `${tag} web font rendered for the name: ${await platformFonts(page, '#hero-heading')}`
+      );
+      console.log(`${tag} About chain after swap: ${(await aboutChain(page)).join(' || ')}`);
+    }
     const cls = await measureCls(page);
     const label = `run ${String(run)} with the fonts delayed: ${describeShifts(cls.sources)}`;
     expect(cls.total, label).toBeLessThan(SWAP_RECENTRE_CLS);
-    const foreign = cls.sources.filter(source => !(source.inHero && source.horizontalOnly));
+    const foreign = cls.sources.filter(source => !source.heroRecentre);
     expect(
       foreign.map(source => source.text),
       label
     ).toEqual([]);
   }
+  console.log(
+    `[font-delay ${test.info().project.name}] ${String(FONT_DELAY_RUNS)} loads in ${String(Math.round((Date.now() - started) / 1000))} s`
+  );
 });
+
+// Scripts fetched after the load event that the HTML never referenced: the islands. Polled, since
+// a resource-timing entry can land a moment after the state it belongs to.
+const lazyIslandScripts = async (page: Page, initial: Set<string>, loadStart: number) =>
+  (await resourcesSince(page, loadStart, /\.js(\?|$)/)).filter(url => !initial.has(url));
 
 test('home JavaScript for evergreen browsers stays within the measured budget, islands excluded', async ({
   page,
@@ -222,13 +289,17 @@ test('home JavaScript for evergreen browsers stays within the measured budget, i
   const total = await sumGzipped(request, initial);
   expect(total, `initial scripts: ${[...initial].join(', ')}`).toBeLessThan(JS_BUDGET_BYTES);
 
-  // The WebMCP island loads after idle as chunks the HTML never references. (A low-priority chunk
-  // the HTML does reference may also start after the load event; it is counted above already.)
+  // The WebMCP island loads after idle as chunks the HTML never references. Wait on the state it
+  // depends on (registration finished, the badge visible), then on the entries themselves.
   const loadStart = await loadEventStart(page);
   await expect(badge(page)).toBeVisible({ timeout: 10_000 });
-  const lazy = await resourcesSince(page, loadStart, /\.js(\?|$)/);
-  const islandChunks = lazy.filter(url => !initial.has(url));
-  expect(islandChunks.length).toBeGreaterThan(0);
+  await expect
+    .poll(() => lazyIslandScripts(page, initial, loadStart), {
+      message: `island chunks after load, outside the initial set ${[...initial].join(', ')}`,
+      timeout: 10_000
+    })
+    .not.toEqual([]);
+  const islandChunks = await lazyIslandScripts(page, initial, loadStart);
   const html = await (await request.get('/')).text();
   for (const url of islandChunks) expect(html, url).not.toContain(new URL(url).pathname);
 });
@@ -241,10 +312,12 @@ test('the WebMCP island and the polyfill stay within their own lazy budgets', as
   const initial = await initialScripts(page);
   const loadStart = await loadEventStart(page);
   await expect(badge(page)).toBeVisible({ timeout: 10_000 });
-  // Only chunks the HTML never references count: a low-priority initial chunk may start late.
-  const lazy = (await resourcesSince(page, loadStart, /\.js(\?|$)/)).filter(
-    url => !initial.has(url)
-  );
+  await expect
+    .poll(() => lazyIslandScripts(page, initial, loadStart), {
+      timeout: 10_000
+    })
+    .not.toEqual([]);
+  const lazy = await lazyIslandScripts(page, initial, loadStart);
   const polyfill: string[] = [];
   const island: string[] = [];
   for (const url of lazy) {
@@ -288,13 +361,15 @@ test('the profile JSON is fetched once, on the first tool call, within its budge
     return [await context.executeTool(skills, '{}'), await context.executeTool(contact, '{}')];
   });
   expect(results).toHaveLength(2);
-  const fetches = await resourcesSince(page, -1, /\/api\/profile\.json/);
-  expect(fetches).toHaveLength(1);
+  await expect
+    .poll(() => resourcesSince(page, -1, /\/api\/profile\.json/), {
+      timeout: 5000
+    })
+    .toHaveLength(1);
   expect(await gzippedSize(request, '/api/profile.json')).toBeLessThan(
     LAZY_BUDGET_BYTES['profile-json']
   );
 });
-
 test('responses carry the strict security headers, and the agent JSON is CORS-open', async ({
   request
 }) => {

@@ -26,6 +26,21 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # The self-hosted fonts' fallback faces are declared as local(Arial) with metric
+      # adjustments (D15 amendment). Linux has no Arial, so the runner needs a metric-compatible
+      # substitute: Liberation Sans. The step prints what fontconfig resolves, so the test log and
+      # the record name the face actually rendered, and pins the alias only if it is wrong.
+      - name: Metric-compatible fallback font
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-liberation
+          echo "fc-match Arial -> $(fc-match Arial)"
+          echo "fc-match 'Geist Fallback' -> $(fc-match 'Geist Fallback')"
+          if ! fc-match Arial | grep -qi liberation; then
+            mkdir -p ~/.config/fontconfig
+            printf '%s\n' '<?xml version="1.0"?>' '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' '<fontconfig>' '  <alias binding="same"><family>Arial</family><prefer><family>Liberation Sans</family></prefer></alias>' '</fontconfig>' > ~/.config/fontconfig/fonts.conf
+            fc-cache -f >/dev/null
+            echo "after alias: fc-match Arial -> $(fc-match Arial)"
+          fi
       - run: npm run check
       - uses: actions/upload-artifact@v7
         if: failure()
