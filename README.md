@@ -52,26 +52,28 @@ Each row has a full entry in `docs/DECISIONS.md`.
 | Server Components versus a client app | Home-page JavaScript, gzipped: 116.8 KB React and router, 27.0 KB Next helpers, 11.4 KB inline payload, 0 KB site code                 | 143.8 KB of external scripts against a 150 KB budget, held by an e2e guard                      |
 | Whether the LCP budget is met         | About paragraph paints at 140 ms unthrottled and 1.9 s under DevTools throttling; Lighthouse's simulation reports 3.2 s and a 93 score | Budget kept at 2.0 s; the simulated score is a known text-LCP artifact, kept as a warning in CI |
 | Documentation-only design change      | Pixel comparison of eight visual-check captures (four widths, two schemes) against `main`                                              | Zero differing pixels; the design document describes what ships, it does not lead it            |
+| Which WebMCP polyfill to pin          | Bundled gzipped size of the full package against the core polyfill: 73.5 KB (bundles an MCP server and transports) versus 8.0 KB       | The core polyfill only, loaded only when no native API exists; measured 7.8 KB in the export    |
 
 ### Budgets and how they are enforced
 
-| Budget                                        | Where it is enforced                                                                       |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Accessibility, best practices and SEO at 1.0  | `lighthouserc.json`, asserted as errors in CI on every pull request                        |
-| FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0 | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning         |
-| Home JavaScript under 150 KB gzipped          | `e2e/budgets.spec.ts`, measured on the served export                                       |
-| Cumulative layout shift of 0                  | `e2e/budgets.spec.ts` at four viewports, plus the Lighthouse assertion                     |
-| No client components or effects under `src/`  | `e2e/budgets.spec.ts`                                                                      |
-| Strict CSP with hashed inline scripts         | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it |
-| LCP under 2.0 s on throttled 4G               | A stated budget (`AGENTS.md`), measured in the decisions log rather than asserted in CI    |
-| Design tokens equal to the stylesheet         | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                   |
+| Budget                                                                | Where it is enforced                                                                         |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Accessibility, best practices and SEO at 1.0                          | `lighthouserc.json`, asserted as errors in CI on every pull request                          |
+| FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0                         | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning           |
+| Home JavaScript under 150 KB gzipped                                  | `e2e/budgets.spec.ts`: scripts the HTML references plus anything fetched before load         |
+| WebMCP island 10 KB, polyfill 12 KB, JSON 24 KB                       | `e2e/budgets.spec.ts`: one named lazy budget per set, each on its own trigger                |
+| Cumulative layout shift of 0                                          | `e2e/budgets.spec.ts` at four viewports, before and after the islands mount, plus Lighthouse |
+| Client components only in the island directories, no effects anywhere | `e2e/budgets.spec.ts`: an allowlist, and every `'use client'` file states why                |
+| Strict CSP with hashed inline scripts                                 | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it   |
+| LCP under 2.0 s on throttled 4G                                       | A stated budget (`AGENTS.md`), measured in the decisions log rather than asserted in CI      |
+| Design tokens equal to the stylesheet                                 | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                     |
 
 ### Token and cost discipline
 
 - Deterministic checks run before any model is asked: the hooks and `npm run check` are compilers, linters and test runners only, and no hook calls a model (`.claude/settings.json`, `AGENTS.md`).
 - The one model-driven agent in the repo, `reviewer`, runs on Opus on request only (`.claude/agents/reviewer.md`). `AGENTS.md` reserves smaller models for audit-style agents as they are added.
 - Model-driven work in CI is triggered, not scheduled: the review workflow needs the `review` label and `claude.yml` needs an `@claude` mention. The monthly job, `links.yml`, is a link checker with no model.
-- One-shot method demos are planned in `docs/PLAN.md` (Phase 4) and stay one-shot by rule (`AGENTS.md`).
+- One-shot method demos stay one-shot by rule (`AGENTS.md`), and each is recorded as measured token usage with list-price equivalents, never as a bill: the dynamic-workflow run that wrote the eight WebMCP tool handlers (`docs/demos/workflow-webmcp-tools.md`) used 1,655,365 tokens by the agent transcripts (64 input, 8,609 output, 1,330,979 cache read, 315,713 cache write), a $1.35 list-price equivalent at the published rates of 2026-10-05 stated beside it. Two observations from that single run sit next to the numbers: the one Opus review found the finding that mattered (every handler returned references into the shared data, fixed once in the shared helper), which the eight workers' own tests could not see; and the fan-out bought wall time (eight files in 48 s) while its token spend was dominated by re-reading shared context, with no sequential baseline measured to say anything about token efficiency. The run's own summary reported a different per-agent figure that turned out to be the final context size, not summed usage; the record keeps that as a finding.
 
 ## What was deliberately not done
 
@@ -106,6 +108,8 @@ Node 24 (`.nvmrc`, `engines` in `package.json`) and npm 10 or newer.
 | `npm run visual-check` | Screenshots the built site at several widths in both schemes for review    |
 | `npm run lighthouse`   | Lighthouse CI against the built site                                       |
 | `npm run check`        | Every gate in CI order                                                     |
+
+`WEBMCP_ORIGIN_TRIAL_TOKEN` is an optional build-time variable (a GitHub repository variable in `deploy.yml`, not a secret, since an origin-trial token is bound to the origin and public): when set, the layout emits the Chrome origin-trial meta tag for WebMCP; when absent, nothing is emitted.
 
 Claude Code, or any agent that reads `AGENTS.md`, is expected to read it first.
 

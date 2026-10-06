@@ -28,6 +28,18 @@ export default defineConfig({
     viewport(390, 844, 'mobile-390'),
     viewport(768, 1024, 'tablet-768'),
     viewport(1280, 800, 'desktop-1280'),
-    viewport(2560, 1440, 'wide-2560')
+    viewport(2560, 1440, 'wide-2560'),
+    // Native WebMCP (D17): Chromium exposes document.modelContext behind this feature switch, so
+    // the WebMCP and budget specs run once more against the native branch of the feature detection;
+    // the four projects above cover the polyfill branch.
+    {
+      name: 'desktop-1280-webmcp',
+      testMatch: /(webmcp|budgets)\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        launchOptions: { args: ['--enable-features=WebMCP'] }
+      }
+    }
   ]
 });

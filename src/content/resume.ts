@@ -1,7 +1,7 @@
 // Content mirrors the current master resume and public profile text; update both together.
 // Hero lines are fixed in docs/SPEC.md §2; About is the public profile text verbatim (D5).
 // Summary, open source and education are agent-facing data only in Phase 2 (D12).
-import type { Profile, SkillGroup } from '@/content/schema';
+import type { Availability, Profile, SkillGroup } from '@/content/schema';
 
 export const profile: Profile = {
   name: 'Jason Robitaille',
@@ -30,6 +30,13 @@ export const profile: Profile = {
     'I enjoy the process of making, bringing an idea into being from the “what” and “why” through to the “how”, and building it alongside people who come at it from different skillsets than mine.',
     'My team was eliminated in LG’s 2026 restructuring, so I’m actively looking for full-stack, platform or developer tooling roles, remote or in the SF Bay Area.'
   ]
+};
+
+// Structured form of the availability the About text states (D17); agent-facing data only.
+export const availability: Availability = {
+  open: true,
+  roles: ['full-stack', 'platform', 'developer tooling'],
+  location: 'remote or SF Bay Area'
 };
 
 export const summary =

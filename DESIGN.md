@@ -140,6 +140,15 @@ components:
   tag-dark:
     backgroundColor: '{colors.muted-dark}'
     textColor: '{colors.foreground-dark}'
+  agent-badge:
+    backgroundColor: '{colors.muted}'
+    textColor: '{colors.foreground}'
+    typography: '{typography.label}'
+    rounded: '{rounded.4xl}'
+    height: 24px
+  agent-badge-dark:
+    backgroundColor: '{colors.muted-dark}'
+    textColor: '{colors.foreground-dark}'
   year-badge:
     backgroundColor: '{colors.accent}'
     textColor: '{colors.accent-foreground}'
@@ -218,7 +227,9 @@ Reuse an existing component before creating one. The page is built from: the fix
 
 A project card is, top to bottom, the image, the year span as a mono label, the title, the one-line blurb and a row of proof chips only, so the row wraps freely. The card is one link to its primary proof: the title anchor stretches over the card, and both proof chips are anchors above it, the primary to the same destination. Hover lifts the card 2px and brightens its ring.
 
-One chip shape, 24px tall with a 16px line height, mono label, pill radius, nothing clipped or transitioned: every proof link is an accent chip (accent soft fill, accent text) and a real anchor, and the card chips are the only proof links on the page; the grey tag with the muted fill is for Toolbox terms only. Prose links are underlined with a muted underline and take the accent on hover.
+One chip shape, 24px tall with a 16px line height, mono label, pill radius, nothing clipped or transitioned: every proof link is an accent chip (accent soft fill, accent text) and a real anchor, and the card chips are the only proof links on the page; the grey tag with the muted fill is for Toolbox terms and for the one button chip, the agent-tools badge. Prose links are underlined with a muted underline and take the accent on hover.
+
+The footer keeps a reserved 24px row under its line for the agent-tools badge (D17): empty in the exported HTML, filled after the page is idle and the WebMCP tools have registered, so nothing shifts. The badge is a grey tag that is a button; it opens a native popover toggletip, a card-surfaced note at the small size with the hairline border and the medium shadow, in the top layer so it moves nothing either. The badge takes the accent soft fill and accent text on hover, like a proof chip.
 
 A timeline node is a bordered card with the era name, years in mono, descriptor and one or two highlights with accent markers, and no links, since the cards carry the proof and the timeline carries the chronology; its year badge sits on the rail, 48px (56px from 1024px), accent fill, bold start year only; the card beside it carries the full range. A 1px hairline in the rail's colour joins the card's rail-facing edge to the badge, level with the badge's centre and exactly the gap long, under the badge; it is part of the card, so it slides in with the card and is static under reduced motion.
 

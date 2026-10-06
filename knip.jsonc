@@ -1,11 +1,12 @@
 // knip: reports unused files, exports and dependencies (spec §5).
-// ui/*.tsx are shadcn-owned primitives consumed from Phase 2; hooks are run by Claude Code; scripts run from npm scripts or by hand (images, captures, headers, visual-check).
+// ui/*.tsx are shadcn-owned primitives consumed from Phase 2; hooks are run by Claude Code; scripts run from npm scripts or by hand (images, captures, headers, visual-check); docs/workflows are the committed one-shot workflow scripts.
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "src/components/ui/*.tsx",
     ".claude/hooks/*.mjs",
     "scripts/*.mjs",
-    "scripts/capture/*.mjs"
+    "scripts/capture/*.mjs",
+    "docs/workflows/*.mjs"
   ]
 }

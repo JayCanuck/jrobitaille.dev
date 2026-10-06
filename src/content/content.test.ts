@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
-import { education, openSource, profile, skills, summary } from '@/content/resume';
+import { availability, education, openSource, profile, skills, summary } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 
 const PUBLIC_EMAIL = 'jason.aj.robitaille@gmail.com';
@@ -49,7 +49,8 @@ const contentStrings = collectStrings([
   openSource,
   education,
   projects,
-  siteCopy
+  siteCopy,
+  availability
 ]);
 
 describe('content strings', () => {
