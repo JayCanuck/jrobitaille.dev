@@ -10,8 +10,8 @@ interface ProjectCardProps {
   project: Project;
 }
 
-// Image on top, title, one-line blurb, then the proof chips and the year span (D13). The whole
-// card is the primary link: the title anchor stretches over the card, and both proof chips are
+// Image on top, the year span as a mono label, title, one-line blurb, then a row of proof chips
+// only, so the row wraps freely (D13 amendment). The whole card is the primary link: the title anchor stretches over the card, and both proof chips are
 // anchors above the stretched one, the primary to the same destination (D15 amendment).
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
@@ -26,6 +26,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div aria-hidden="true" className="slot-pattern aspect-[16/10] w-full" />
       )}
       <CardHeader>
+        <p className="font-mono text-label text-muted-foreground">{project.era}</p>
         <h3 className="text-base leading-snug font-semibold">
           <a
             href={project.link.href}
@@ -60,9 +61,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {project.secondaryLink.label}
           </a>
         )}
-        <span className="ml-auto shrink-0 font-mono text-label text-muted-foreground">
-          {project.era}
-        </span>
       </CardFooter>
     </Card>
   );

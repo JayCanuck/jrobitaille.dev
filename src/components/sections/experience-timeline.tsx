@@ -44,8 +44,7 @@ const items: Item[] = [
         name: role.era,
         years: role.years,
         desc: role.desc,
-        highlights: role.highlights,
-        link: role.link
+        highlights: role.highlights
       }
     } as const
   ])
@@ -128,7 +127,6 @@ export function ExperienceTimeline() {
                 years={item.era.years}
                 desc={item.era.desc}
                 highlights={item.era.highlights}
-                link={item.era.link}
                 side={side}
               />
             </li>

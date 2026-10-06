@@ -521,3 +521,57 @@ test('home has no axe violations', async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
+
+// Section jobs (D13 and D15 amendments): cards carry proof, the timeline carries chronology.
+test('card years sit above the title and chip rows hold chips only, on one line', async ({
+  browser,
+  baseURL
+}) => {
+  for (const width of [390, 640, 1024, 1440, 2048]) {
+    const context = await browser.newContext({
+      viewport: { width, height: width < 768 ? 844 : 1000 }
+    });
+    const page = await context.newPage();
+    await page.goto(baseURL ?? '/');
+    await page.evaluate(() =>
+      document.getElementById('work')?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    );
+    await page.waitForTimeout(300);
+    const cards = await page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>('#work [data-slot="card"]')).map(card => {
+        const year = card.querySelector('[data-slot="card-header"] > p');
+        const title = card.querySelector('h3');
+        const chips = Array.from(card.querySelector('[data-slot="card-footer"]')?.children ?? []);
+        return {
+          title: title?.textContent ?? '',
+          yearAboveTitle:
+            year !== null &&
+            title !== null &&
+            year.getBoundingClientRect().bottom <= title.getBoundingClientRect().top + 0.5,
+          chipsOnly:
+            chips.length > 0 &&
+            chips.every(chip => chip.tagName === 'A' && chip.className.includes('bg-brand-soft')),
+          rows: new Set(chips.map(chip => Math.round(chip.getBoundingClientRect().top))).size
+        };
+      })
+    );
+    expect(cards, String(width)).toHaveLength(projects.length);
+    for (const card of cards) {
+      const label = `${card.title} at ${String(width)}`;
+      expect(card.yearAboveTitle, label).toBe(true);
+      expect(card.chipsOnly, label).toBe(true);
+      expect(card.rows, label).toBe(1);
+    }
+    await context.close();
+  }
+});
+
+test('timeline nodes contain no anchors; the card chips are the only proof links', async ({
+  page
+}) => {
+  await page.goto('/');
+  await expect(page.locator('.timeline-card a')).toHaveCount(0);
+  const chips = projects.reduce((n, project) => n + 1 + (project.secondaryLink ? 1 : 0), 0);
+  await expect(page.locator('a[class*="bg-brand-soft"]')).toHaveCount(chips);
+  await expect(page.locator('#work a[class*="bg-brand-soft"]')).toHaveCount(chips);
+});
