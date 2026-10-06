@@ -19,7 +19,8 @@ interface ViewToggleProps {
 }
 
 // Mono label scale like the header links; plain class strings so the island stays free of the
-// class-merge dependency.
+// class-merge dependency. The buttons are content-sized and sit at the end of the fixed slot the
+// heading row reserves, flush with the column's right edge.
 const buttonClass =
   'flex h-7 cursor-pointer items-center rounded-sm font-mono text-label font-medium tracking-wider uppercase hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none';
 

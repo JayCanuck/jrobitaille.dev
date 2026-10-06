@@ -46,20 +46,11 @@ export function ToolboxView({
   const [requested, setRequested] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // The control is mono text anchored to the right edge of the heading row, so its width in a
-  // fallback face differs from its width in Geist Mono, and a right-anchored element whose width
-  // changes at the font swap is a layout shift. It therefore renders once the fonts have settled:
-  // at once on a warm cache, at the swap on a slow connection, and after the failure if a font
-  // never arrives.
+  // The control renders as soon as this has hydrated and the WebGL check has passed; the heading
+  // row reserves its slot server-side, so its appearance moves nothing and fonts play no part.
   const arm = (node: HTMLDivElement | null) => {
     if (!node || ready) return;
-    let cancelled = false;
-    void document.fonts.ready.then(() => {
-      if (!cancelled) setReady({ webgl: hasWebGL() });
-    });
-    return () => {
-      cancelled = true;
-    };
+    setReady({ webgl: hasWebGL() });
   };
 
   const change = (next: SkillsView) => {

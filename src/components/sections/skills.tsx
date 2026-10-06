@@ -10,7 +10,12 @@ import { siteCopy } from '@/content/site';
 // Once JavaScript runs with WebGL available, the heading row gains a List / Cloud control; pressing
 // Cloud is the only thing that loads the cloud, after which the chips fade to opacity 0 and ignore
 // the pointer but stay in the DOM and the accessibility tree (never display none or visibility
-// hidden). No JS, no WebGL or any load error leave the chips visible with nothing to undo.
+// hidden). No JS, no WebGL or any load error leave the chips visible with nothing to undo. The
+// heading row reserves the control's slot server-side: a fixed 144 by 28 px box at the right edge,
+// wide enough for both labels in any face, its content justified to the end so the buttons sit
+// flush with the column's right edge and the spare width lives on the slot's left. The slot never
+// changes size, so the control's appearance moves nothing; the labels inside it re-flow at the
+// font swap like the chip rows inside the reserved box (D18).
 export function Skills() {
   return (
     <section
@@ -20,7 +25,7 @@ export function Skills() {
     >
       <div className="flex items-center justify-between gap-4">
         <SectionHeading id="skills-heading">{siteCopy.headings.skills}</SectionHeading>
-        <span id="skills-view" className="flex h-7 items-center gap-3" />
+        <span id="skills-view" className="flex h-7 w-36 shrink-0 items-center justify-end gap-3" />
       </div>
       <div className="@container">
         <ToolboxView

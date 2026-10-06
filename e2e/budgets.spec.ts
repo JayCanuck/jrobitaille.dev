@@ -135,7 +135,11 @@ const measureCls = (page: Page) =>
         const sources: ShiftSource[] = [];
         const hero = document.querySelector('section.hero-timeline');
         const about = document.getElementById('about');
-        const toolbox = document.querySelector('[data-island="cloud"]');
+        // The Toolbox reserved boxes: the chip box and the control's slot in the heading row.
+        const toolbox = [
+          document.querySelector('[data-island="cloud"]'),
+          document.getElementById('skills-view')
+        ];
         const observer = new PerformanceObserver(list => {
           for (const entry of list.getEntries() as (PerformanceEntry & {
             value: number;
@@ -164,7 +168,7 @@ const measureCls = (page: Page) =>
                 name,
                 inHero,
                 inAbout: Boolean(about && element && about.contains(element)),
-                inToolbox: Boolean(toolbox && element && toolbox.contains(element)),
+                inToolbox: Boolean(element && toolbox.some(box => box?.contains(element))),
                 text: `${entry.value.toFixed(4)} at ${String(Math.round(entry.startTime))}ms ${name} [${rect(a)}] -> [${rect(b)}]`
               });
             }
@@ -234,20 +238,25 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
 // FONT_DELAY_RUNS=30 for a diagnosis run, the font files held back two seconds. On every load: no
 // line count above the fold changes except the About paragraphs (left-aligned prose whose break
 // points a face decides; only their first line is above the fold), no layout-shift source outside
-// the hero or About, and the total stays under 0.01; failures name the element and its rects. The
-// first load logs the fallback face Chromium rendered.
+// the hero, About or the two Toolbox reserved boxes (the chip box and the control's slot, whose
+// own rects are asserted unchanged), and the total stays under 0.01; failures name the element and
+// its rects. The first load logs the fallback face Chromium rendered.
 const FONT_DELAY_RUNS = Number(process.env.FONT_DELAY_RUNS ?? (process.env.CI ? 10 : 30));
 const FONT_SWAP_CLS = 0.01;
 
-// The Toolbox reserved box in page coordinates: its chips may re-break under the fallback face,
-// but the box itself never changes size or position at the swap.
+// The Toolbox reserved boxes in page coordinates, the chip box and the control's slot: the chips
+// and the labels may re-flow under the fallback face, but neither box changes size or position at
+// the swap.
 const toolboxBox = (page: Page) =>
-  page.evaluate(() => {
-    const box = document.querySelector('[data-island="cloud"]');
-    if (!box) return null;
-    const r = box.getBoundingClientRect();
-    return [r.x, r.y + window.scrollY, r.width, r.height].map(n => Math.round(n));
-  });
+  page.evaluate(() =>
+    [document.querySelector('[data-island="cloud"]'), document.getElementById('skills-view')].map(
+      box => {
+        if (!box) return null;
+        const r = box.getBoundingClientRect();
+        return [r.x, r.y + window.scrollY, r.width, r.height].map(n => Math.round(n));
+      }
+    )
+  );
 
 // Line counts of every text-bearing element above the fold, keyed by element, so a wrap change
 // between the fallback and the web font is named; About prose is keyed apart.
@@ -290,9 +299,11 @@ test('fonts arriving two seconds late move nothing outside the hero and the Abou
   });
   for (let run = 1; run <= FONT_DELAY_RUNS; run++) {
     // The preloaded font requests hold the load event, so the fallback is observed before it:
-    // after the DOM and first paint, two seconds ahead of the swap.
+    // after the DOM, first paint, hydration and the mount of the Toolbox control, which does not
+    // wait for fonts, two seconds ahead of the swap.
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#hero-heading')).toBeVisible();
+    await expect(page.getByRole('button', { name: siteCopy.skillsView.list })).toBeAttached();
     const before = await foldLineCounts(page);
     const boxBefore = await toolboxBox(page);
     if (run === 1) {
@@ -310,7 +321,7 @@ test('fonts arriving two seconds late move nothing outside the hero and the Abou
     const after = await foldLineCounts(page);
     expect(
       await toolboxBox(page),
-      `${tag} run ${String(run)}: the Toolbox reserved box changed`
+      `${tag} run ${String(run)}: a Toolbox reserved box changed`
     ).toEqual(boxBefore);
     const rewrapped = Object.keys(before)
       .filter(key => !key.startsWith('about: ') && !key.startsWith('toolbox-chips: '))

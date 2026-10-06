@@ -87,6 +87,51 @@ test('the chips are the default view with the control beside the heading; pressi
   expect(after?.height ?? 0).toBeGreaterThanOrEqual((after?.width ?? 0) * 0.75 - 1);
 });
 
+test('with the fonts blocked entirely, the control still appears within a second of load', async ({
+  page
+}) => {
+  await page.route('**/*.woff2', route => route.abort());
+  await page.goto('/', { waitUntil: 'load' });
+  await expect(listButton(page)).toBeVisible({ timeout: 1000 });
+  await expect(cloudButton(page)).toBeVisible();
+  const sinceLoad = await page.evaluate(() => {
+    const [navigation] = performance.getEntriesByType('navigation');
+    return performance.now() - (navigation as PerformanceNavigationTiming).loadEventStart;
+  });
+  expect(sinceLoad).toBeLessThan(1000);
+  // The reserved slot holds the control at its fixed size in the fallback face too.
+  const slot = await page.locator('#skills-view').boundingBox();
+  expect(slot?.width).toBe(144);
+  expect(slot?.height).toBe(28);
+});
+
+test('the control sits flush with the chips at the column edge, at 1024, 1440 and 2048', async ({
+  page
+}) => {
+  test.skip(test.info().project.name !== 'desktop-1280', 'one project; the widths are set here');
+  for (const width of [1024, 1440, 2048]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/', { waitUntil: 'load' });
+    await expect(cloudButton(page)).toBeVisible();
+    const edges = await page.evaluate(() => {
+      const chips = document.querySelector('[data-island="cloud"]')?.getBoundingClientRect();
+      const slot = document.getElementById('skills-view')?.getBoundingClientRect();
+      const buttons = Array.from(document.querySelectorAll('#skills-view button')).map(button =>
+        button.getBoundingClientRect()
+      );
+      return {
+        chips: chips?.right ?? NaN,
+        slot: slot?.right ?? NaN,
+        control: Math.max(...buttons.map(rect => rect.right)),
+        slotWidth: slot?.width ?? NaN
+      };
+    });
+    expect(Math.abs(edges.control - edges.chips), `${String(width)} px`).toBeLessThanOrEqual(1);
+    expect(Math.abs(edges.slot - edges.chips), `${String(width)} px`).toBeLessThanOrEqual(1);
+    expect(edges.slotWidth, `${String(width)} px`).toBe(144);
+  }
+});
+
 test('load, a scroll to the box, a wheel and a hover request no cloud chunk', async ({
   page,
   request
