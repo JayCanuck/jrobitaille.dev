@@ -8,12 +8,19 @@
 import dynamic from 'next/dynamic';
 import { useState, type ReactNode } from 'react';
 
+import type { KonamiProps } from '@/components/konami/konami';
 import type { ModelContextProviderProps } from '@/components/webmcp/model-context-provider';
 
-type Trigger = 'idle';
+type Trigger = 'idle' | 'keydown';
+
+// Every island type names the key that fired a keyed trigger; only such a trigger fills it.
+interface Keyed {
+  firstKey?: string | undefined;
+}
 
 interface IslandPropsMap {
-  webmcp: ModelContextProviderProps;
+  webmcp: ModelContextProviderProps & Keyed;
+  konami: KonamiProps;
 }
 
 type IslandName = keyof IslandPropsMap;
@@ -31,27 +38,38 @@ const islands: {
         ),
       { ssr: false }
     )
+  },
+  konami: {
+    trigger: 'keydown',
+    Component: dynamic(() => import('@/components/konami/konami').then(module => module.Konami), {
+      ssr: false
+    })
   }
 };
 
 interface IslandProps<N extends IslandName> {
   name: N;
-  props: IslandPropsMap[N];
+  props: Omit<IslandPropsMap[N], 'firstKey'>;
   className?: string;
   // Server-rendered content that stays in place whether or not the island ever loads.
   children?: ReactNode;
 }
 
 type Cleanup = () => void;
+// A trigger may carry a detail for the island: the key that fired it.
+type Fire = (detail?: string) => void;
 
 // After the load event, then in the first idle period (or within 2 s on a busy main thread).
-const onIdle = (callback: () => void): Cleanup => {
+const onIdle = (callback: Fire): Cleanup => {
   let handle: number | undefined;
+  const fire = () => {
+    callback();
+  };
   const schedule = () => {
     handle =
       typeof window.requestIdleCallback === 'function'
-        ? window.requestIdleCallback(callback, { timeout: 2000 })
-        : window.setTimeout(callback, 200);
+        ? window.requestIdleCallback(fire, { timeout: 2000 })
+        : window.setTimeout(fire, 200);
   };
   if (document.readyState === 'complete') schedule();
   else window.addEventListener('load', schedule, { once: true });
@@ -63,23 +81,43 @@ const onIdle = (callback: () => void): Cleanup => {
   };
 };
 
-const armers: Record<Trigger, (node: HTMLElement, callback: () => void) => Cleanup> = {
-  idle: (_node, callback) => onIdle(callback)
+// The first keydown on the window, attached once and passive; the key travels with the trigger
+// so the island can replay it (D14 amendment).
+const onFirstKeydown = (callback: Fire): Cleanup => {
+  const listener = (event: KeyboardEvent) => {
+    callback(event.key);
+  };
+  window.addEventListener('keydown', listener, { once: true, passive: true });
+  return () => {
+    window.removeEventListener('keydown', listener);
+  };
 };
 
+const armers: Record<Trigger, (node: HTMLElement, callback: Fire) => Cleanup> = {
+  idle: (_node, callback) => onIdle(callback),
+  keydown: (_node, callback) => onFirstKeydown(callback)
+};
+
+interface Fired {
+  ready: boolean;
+  detail?: string;
+}
+
 export function Island<N extends IslandName>({ name, props, className, children }: IslandProps<N>) {
-  const [ready, setReady] = useState(false);
+  const [fired, setFired] = useState<Fired>({ ready: false });
   const { trigger, Component } = islands[name];
   const ref = (node: HTMLElement | null) => {
-    if (!node || ready) return;
-    return armers[trigger](node, () => {
-      setReady(true);
+    if (!node || fired.ready) return;
+    return armers[trigger](node, detail => {
+      setFired({ ready: true, detail });
     });
   };
+  // The detail rides along as `firstKey`.
+  const all = { ...props, firstKey: fired.detail } as IslandPropsMap[N];
   return (
     <div ref={ref} data-island={name} className={className}>
       {children}
-      {ready && <Component {...props} />}
+      {fired.ready && <Component {...all} />}
     </div>
   );
 }

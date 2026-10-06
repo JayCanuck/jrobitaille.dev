@@ -19,7 +19,9 @@ export const siteCopy: SiteCopy = {
   skillsView: { list: 'List', cloud: 'Cloud' },
   notFound: {
     title: 'Page not found',
-    body: 'There is nothing at this address. The cow is fine.',
+    body: 'There is nothing at this address.',
+    // The second sentence of the 404 line, on its own so the Konami payoff can show it too.
+    cow: 'The cow is fine.',
     home: 'Back to the home page'
   }
 };

@@ -27,16 +27,32 @@ const LAZY_BUDGET_BYTES = {
   // /api/profile.json, fetched on the first tool call, never at idle.
   'profile-json': 24 * 1024,
   // The skills cloud: three, fiber and the island in one chunk (245 KB measured, D18).
-  cloud: 260 * 1024
+  cloud: 260 * 1024,
+  // The Konami egg: the detector and the payoff, loaded on the first keydown (D14 amendment).
+  konami: 3 * 1024
 };
 const POLYFILL_MARKER = '__isWebMCPPolyfill';
 const THREE_MARKER = 'WebGLRenderer';
+const KONAMI_MARKER = 'ArrowLeft';
+const KONAMI_KEYS = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'b',
+  'a'
+];
 
 // 'use client' is allowed only here, and only with a comment on the next line saying why.
 const CLIENT_ALLOWLIST = [
   'src/components/islands/',
   'src/components/webmcp/',
-  'src/components/cloud/'
+  'src/components/cloud/',
+  'src/components/konami/'
 ];
 
 const walk = (dir: string): string[] =>
@@ -228,6 +244,13 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
   await expect(page.locator('[data-island="cloud"] canvas')).toBeAttached({ timeout: 20_000 });
   await page.waitForTimeout(500);
   await expectNoShift(page, 'after the cloud mounted');
+  // The Konami payoff is a fixed layer: the island loads on the first key, the rest follow.
+  await page.keyboard.press(KONAMI_KEYS[0] ?? '');
+  await expect(page.locator('[data-konami="armed"]')).toBeAttached({ timeout: 10_000 });
+  for (const key of KONAMI_KEYS.slice(1)) await page.keyboard.press(key);
+  await expect(page.locator('[data-konami="showing"]')).toBeAttached();
+  await page.waitForTimeout(1500);
+  await expectNoShift(page, 'after the Konami payoff');
 });
 
 // The web fonts arriving after first paint (D15 amendment). The first viewport is immune to the
@@ -439,6 +462,34 @@ test('the profile JSON is fetched once, on the first tool call, within its budge
     LAZY_BUDGET_BYTES['profile-json']
   );
 });
+test('the Konami island loads on the first keydown and stays within its lazy budget', async ({
+  page,
+  request
+}) => {
+  await page.goto('/', { waitUntil: 'load' });
+  const initial = await initialScripts(page, request);
+  const loadStart = await loadEventStart(page);
+  // The idle island first, so the only scripts after the key are the egg's.
+  await expect(badge(page)).toBeVisible({ timeout: 10_000 });
+  await page.waitForTimeout(300);
+  const beforeKey = new Set(await lazyIslandScripts(page, initial, loadStart));
+  await page.keyboard.press(KONAMI_KEYS[0] ?? '');
+  await expect(page.locator('[data-konami="armed"]')).toBeAttached({ timeout: 10_000 });
+  await expect
+    .poll(async () =>
+      (await lazyIslandScripts(page, initial, loadStart)).filter(url => !beforeKey.has(url))
+    )
+    .not.toEqual([]);
+  const konami = (await lazyIslandScripts(page, initial, loadStart)).filter(
+    url => !beforeKey.has(url)
+  );
+  for (const url of konami) expect(await hasMarker(request, url, KONAMI_MARKER), url).toBe(true);
+  for (const url of konami) expect(initial.has(url), url).toBe(false);
+  expect(await sumGzipped(request, konami), konami.join(', ')).toBeLessThan(
+    LAZY_BUDGET_BYTES.konami
+  );
+});
+
 test('the skills cloud loads only on the Cloud control and stays within its lazy budget', async ({
   page,
   request

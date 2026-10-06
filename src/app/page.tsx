@@ -1,3 +1,4 @@
+import { Island } from '@/components/islands/island';
 import { JsonLd } from '@/components/layout/json-ld';
 import { SiteHeader } from '@/components/layout/site-header';
 import { About } from '@/components/sections/about';
@@ -5,12 +6,18 @@ import { ExperienceTimeline } from '@/components/sections/experience-timeline';
 import { Hero } from '@/components/sections/hero';
 import { SelectedWork } from '@/components/sections/selected-work';
 import { Skills } from '@/components/sections/skills';
+import { images } from '@/content/images';
 import { profile } from '@/content/resume';
+import { siteCopy } from '@/content/site';
 import { personJsonLd, webSiteJsonLd } from '@/lib/json-ld';
 
 // Home (D15): fixed header, full-width hero over a fixed cover, then About and Toolbox side by side
 // from 1024 px, the card grid and the timeline, each section separated by a hairline. The content
-// column and the footer carry the page background above the cover layer. Server Components only.
+// column and the footer carry the page background above the cover layer. Server Components only;
+// the Konami egg (D14 amendment) is a zero-size island slot at the end of main, loaded on the first
+// keydown, its payoff a fixed layer that changes no layout.
+const ufoAndCow = images['ufo-and-cow'];
+
 export default function HomePage() {
   return (
     <>
@@ -31,6 +38,13 @@ export default function HomePage() {
             <ExperienceTimeline />
           </div>
         </div>
+        <Island
+          name="konami"
+          props={{
+            toast: siteCopy.notFound.cow,
+            image: { src: ufoAndCow.src, width: ufoAndCow.width, height: ufoAndCow.height }
+          }}
+        />
       </main>
     </>
   );

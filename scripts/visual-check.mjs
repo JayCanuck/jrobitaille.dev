@@ -147,6 +147,16 @@ for (const scheme of schemes) {
         }
         await shot(`-${id}`);
       }
+      // The Konami payoff (D14 amendment): the sequence at a human pace (the island loads on the
+      // first key), then a frame while the drawing floats in the corner.
+      const sequence =
+        'ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a';
+      for (const key of sequence.split(' ')) {
+        await page.keyboard.press(key);
+        await page.waitForTimeout(150);
+      }
+      await page.waitForTimeout(1200);
+      await shot('-konami');
     } else {
       await shot('');
     }
