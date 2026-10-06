@@ -103,6 +103,17 @@ test('the sequence shows the payoff with the 404 line and requests the drawing o
   await expect(payoff(page)).toBeAttached();
 });
 
+test('the whole sequence typed before the island has loaded is not lost: the keys are replayed', async ({
+  page
+}) => {
+  await page.goto('/', { waitUntil: 'load' });
+  await expect(page.getByRole('button', { name: siteCopy.skillsView.list })).toBeVisible();
+  await expect(armed(page)).toHaveCount(0);
+  // No waiting for the chunk between keys: the loader collects them while it arrives.
+  for (const key of KEYS) await page.keyboard.press(key);
+  await expect(payoff(page)).toBeAttached({ timeout: 10_000 });
+});
+
 test('a wrong sequence shows nothing', async ({ page }) => {
   await page.goto('/', { waitUntil: 'load' });
   await type(page, WRONG_KEYS);

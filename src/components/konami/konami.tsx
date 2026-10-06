@@ -1,28 +1,33 @@
 'use client';
 // Why a client component: the Konami egg (D14 amendment) listens for keys in the browser. It loads
-// on the first keydown through the island loader, which replays that key, so nothing is requested
-// before a key is pressed. The payoff is a fixed, aria-hidden, pointer-events-none layer with no
-// anchor and nothing focusable, so it changes no layout. The toast copy and the drawing's address
-// arrive as props; nothing is imported from the content. No effect hook: the listener is armed
-// from a ref callback, which React 19 cleans up on unmount.
+// on the first keydown through the island loader, which collects the keys pressed while the chunk
+// arrives and hands them over for replay, so nothing is requested before a key is pressed and no
+// key of a first attempt is lost. The payoff is a fixed, aria-hidden, pointer-events-none layer with
+// no anchor and nothing focusable, so it changes no layout. The toast copy and the drawing's address
+// arrive as props; nothing is imported from the content. No effect hook: the listener is armed from
+// a ref callback, which React 19 cleans up on unmount.
 import { useRef, useState } from 'react';
 
 import { advance, isComplete } from '@/lib/konami';
 
 export interface KonamiProps {
-  // The key that loaded the island, replayed into the detector once.
-  firstKey?: string;
+  // The keys pressed before this island could listen, in order; replayed once each.
+  replay?: readonly string[] | undefined;
+  // Tells the loader to stop collecting keys: this island listens for itself from now on.
+  onArmed?: (() => void) | undefined;
   toast: string;
   image: { src: string; width: number; height: number };
 }
 
-export function Konami({ firstKey, toast, image }: KonamiProps) {
+export function Konami({ replay, onArmed, toast, image }: KonamiProps) {
   const [showing, setShowing] = useState(false);
   // Detector state lives outside render; the handlers are the only writers.
   const progress = useRef(0);
   const visible = useRef(false);
-  const replayed = useRef(false);
+  const replayed = useRef(0);
 
+  // Re-armed by React whenever the replay list grows before the loader has been told to stop, so
+  // a key that landed between the loader's last render and this mount is replayed too.
   const arm = (node: HTMLElement | null) => {
     if (!node) return;
     const onKey = (key: string) => {
@@ -34,10 +39,9 @@ export function Konami({ firstKey, toast, image }: KonamiProps) {
       visible.current = true;
       setShowing(true);
     };
-    if (firstKey !== undefined && !replayed.current) {
-      replayed.current = true;
-      onKey(firstKey);
-    }
+    for (const key of (replay ?? []).slice(replayed.current)) onKey(key);
+    replayed.current = replay?.length ?? 0;
+    onArmed?.();
     const listener = (event: KeyboardEvent) => {
       onKey(event.key);
     };

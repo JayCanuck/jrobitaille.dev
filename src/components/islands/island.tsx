@@ -6,16 +6,19 @@
 // hook: the trigger is armed from a ref callback, which React 19 cleans up on unmount. The skills
 // cloud is not scheduled here: it loads only on the Cloud toggle (D18), which the Toolbox view owns.
 import dynamic from 'next/dynamic';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 
 import type { KonamiProps } from '@/components/konami/konami';
 import type { ModelContextProviderProps } from '@/components/webmcp/model-context-provider';
 
 type Trigger = 'idle' | 'keydown';
 
-// Every island type names the key that fired a keyed trigger; only such a trigger fills it.
+// Every island type names the keyed-trigger props; only a keyed trigger fills them: the keys
+// pressed before the island could listen, in order, and a call that tells the loader to stop
+// collecting them once the island listens for itself.
 interface Keyed {
-  firstKey?: string | undefined;
+  replay?: readonly string[] | undefined;
+  onArmed?: (() => void) | undefined;
 }
 
 interface IslandPropsMap {
@@ -49,15 +52,15 @@ const islands: {
 
 interface IslandProps<N extends IslandName> {
   name: N;
-  props: Omit<IslandPropsMap[N], 'firstKey'>;
+  props: Omit<IslandPropsMap[N], keyof Keyed>;
   className?: string;
   // Server-rendered content that stays in place whether or not the island ever loads.
   children?: ReactNode;
 }
 
 type Cleanup = () => void;
-// A trigger may carry a detail for the island: the key that fired it.
-type Fire = (detail?: string) => void;
+// A trigger fires with the keys it has collected so far, if it collects any.
+type Fire = (keys?: readonly string[]) => void;
 
 // After the load event, then in the first idle period (or within 2 s on a busy main thread).
 const onIdle = (callback: Fire): Cleanup => {
@@ -81,13 +84,16 @@ const onIdle = (callback: Fire): Cleanup => {
   };
 };
 
-// The first keydown on the window, attached once and passive; the key travels with the trigger
-// so the island can replay it (D14 amendment).
-const onFirstKeydown = (callback: Fire): Cleanup => {
+// Keys on the window, one passive listener attached once: the first fires the trigger, and every
+// key is collected until the island reports that it listens for itself, so none pressed while the
+// chunk arrives is lost (D14 amendment).
+const onKeys = (callback: Fire): Cleanup => {
+  const keys: string[] = [];
   const listener = (event: KeyboardEvent) => {
-    callback(event.key);
+    keys.push(event.key);
+    callback([...keys]);
   };
-  window.addEventListener('keydown', listener, { once: true, passive: true });
+  window.addEventListener('keydown', listener, { passive: true });
   return () => {
     window.removeEventListener('keydown', listener);
   };
@@ -95,25 +101,34 @@ const onFirstKeydown = (callback: Fire): Cleanup => {
 
 const armers: Record<Trigger, (node: HTMLElement, callback: Fire) => Cleanup> = {
   idle: (_node, callback) => onIdle(callback),
-  keydown: (_node, callback) => onFirstKeydown(callback)
+  keydown: (_node, callback) => onKeys(callback)
 };
 
 interface Fired {
   ready: boolean;
-  detail?: string;
+  replay?: readonly string[];
 }
 
 export function Island<N extends IslandName>({ name, props, className, children }: IslandProps<N>) {
   const [fired, setFired] = useState<Fired>({ ready: false });
   const { trigger, Component } = islands[name];
+  // The trigger's cleanup, kept so the island can end key collection before it unmounts.
+  const disarm = useRef<Cleanup | null>(null);
   const ref = (node: HTMLElement | null) => {
-    if (!node || fired.ready) return;
-    return armers[trigger](node, detail => {
-      setFired({ ready: true, detail });
+    if (!node || disarm.current) return;
+    disarm.current = armers[trigger](node, keys => {
+      setFired({ ready: true, replay: keys });
     });
+    return () => {
+      disarm.current?.();
+      disarm.current = null;
+    };
   };
-  // The detail rides along as `firstKey`.
-  const all = { ...props, firstKey: fired.detail } as IslandPropsMap[N];
+  const onArmed = () => {
+    disarm.current?.();
+    disarm.current = null;
+  };
+  const all = { ...props, replay: fired.replay, onArmed } as IslandPropsMap[N];
   return (
     <div ref={ref} data-island={name} className={className}>
       {children}
