@@ -15,7 +15,7 @@ const IMAGES = [
     file: 'cover.jpg',
     width: 1920,
     height: 600,
-    position: 'attention',
+    position: 'top',
     alt: '',
     widths: [640, 1280]
   },
