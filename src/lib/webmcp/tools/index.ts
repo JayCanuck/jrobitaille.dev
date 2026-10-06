@@ -39,3 +39,5 @@ export const callTool = (
 };
 
 export type { ToolDefinition, ToolResult } from './types';
+// Type only: the islands take the data's shape from here and the data itself from /api/profile.json.
+export type { ProfileData } from '@/lib/webmcp/profile-data';

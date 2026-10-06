@@ -24,7 +24,7 @@ export function SiteFooter() {
       {siteCopy.footerLine && <p>{siteCopy.footerLine}</p>}
       {/* Reserved 24 px row for the agent-tools badge, so its arrival after idle shifts nothing. */}
       <div className="flex h-6 items-center justify-center">
-        <Island name="webmcp" />
+        <Island name="webmcp" props={siteCopy.agentTools} />
       </div>
     </footer>
   );

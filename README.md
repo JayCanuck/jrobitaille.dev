@@ -61,7 +61,7 @@ Each row has a full entry in `docs/DECISIONS.md`.
 | Accessibility, best practices and SEO at 1.0                          | `lighthouserc.json`, asserted as errors in CI on every pull request                          |
 | FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0                         | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning           |
 | Home JavaScript under 150 KB gzipped                                  | `e2e/budgets.spec.ts`: scripts the HTML references plus anything fetched before load         |
-| WebMCP island 10 KB, polyfill 12 KB, JSON 24 KB                       | `e2e/budgets.spec.ts`: one named lazy budget per set, each on its own trigger                |
+| WebMCP island 10 KB, polyfill 12 KB, JSON 24 KB, skills cloud 260 KB  | `e2e/budgets.spec.ts`: one named lazy budget per set, each on its own trigger                |
 | Cumulative layout shift of 0                                          | `e2e/budgets.spec.ts` at four viewports, before and after the islands mount, plus Lighthouse |
 | Client components only in the island directories, no effects anywhere | `e2e/budgets.spec.ts`: an allowlist, and every `'use client'` file states why                |
 | Strict CSP with hashed inline scripts                                 | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it   |

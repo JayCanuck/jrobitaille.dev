@@ -16,6 +16,7 @@ export const siteCopy: SiteCopy = {
     explain:
       'This page registers eight read-only WebMCP tools, a W3C Community Group draft API, so an agent in a supporting browser can read the profile, experience, projects, skills and contact without scraping. The same data is at /api/profile.json.'
   },
+  skillsView: { list: 'List', cloud: 'Cloud' },
   notFound: {
     title: 'Page not found',
     body: 'There is nothing at this address. The cow is fine.',

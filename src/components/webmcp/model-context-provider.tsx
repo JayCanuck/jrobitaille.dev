@@ -5,9 +5,11 @@
 // badge once registration succeeds. Registration is a module promise read with use(): no effect.
 import { Suspense, use } from 'react';
 
-import { AgentToolsBadge } from '@/components/webmcp/agent-tools-badge';
-import type { ProfileData } from '@/lib/webmcp/profile-data';
-import { callTool, tools } from '@/lib/webmcp/tools';
+import { AgentToolsBadge, type AgentToolsCopy } from '@/components/webmcp/agent-tools-badge';
+import { callTool, type ProfileData, tools } from '@/lib/webmcp/tools';
+
+// The badge copy arrives as props from the footer; the data is the public JSON, never the content.
+export type ModelContextProviderProps = AgentToolsCopy;
 
 interface ModelContextLike {
   registerTool(tool: {
@@ -55,15 +57,15 @@ const register = async (): Promise<boolean> => {
 
 let registration: Promise<boolean> | undefined;
 
-function Registered() {
+function Registered(copy: AgentToolsCopy) {
   const ok = use((registration ??= register()));
-  return ok ? <AgentToolsBadge /> : null;
+  return ok ? <AgentToolsBadge {...copy} /> : null;
 }
 
-export function ModelContextProvider() {
+export function ModelContextProvider(copy: ModelContextProviderProps) {
   return (
     <Suspense fallback={null}>
-      <Registered />
+      <Registered {...copy} />
     </Suspense>
   );
 }

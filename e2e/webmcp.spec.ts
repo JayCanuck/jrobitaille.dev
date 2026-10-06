@@ -60,7 +60,10 @@ const callTool = (page: Page, name: string, input: object) =>
 test('the exported HTML carries the reserved slot and no badge', async ({ request }) => {
   const html = await (await request.get('/')).text();
   expect(html).toContain('data-island="webmcp"');
-  expect(html).not.toContain(siteCopy.agentTools.badge);
+  // The badge copy travels as an island prop inside the RSC payload scripts; the rendered markup
+  // itself carries no badge until registration succeeds.
+  const markup = html.replace(/<script\b[\s\S]*?<\/script>/g, '');
+  expect(markup).not.toContain(siteCopy.agentTools.badge);
 });
 
 test('after idle the eight tools are registered with the declared input schemas', async ({
