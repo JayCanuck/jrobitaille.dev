@@ -25,7 +25,7 @@ const resumeButtonClass = buttonVariants({
 
 export function HeroActions() {
   return (
-    <ul className="flex h-9 flex-nowrap items-center justify-center gap-x-3.5 sm:gap-x-6">
+    <ul className="flex h-9 flex-nowrap items-center justify-center gap-x-4 sm:gap-x-6">
       <li className="flex">
         <a href={resumeLink.href} className={resumeButtonClass}>
           <FileText data-icon="inline-start" />
