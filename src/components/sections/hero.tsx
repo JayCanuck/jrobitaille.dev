@@ -13,6 +13,10 @@ import { siteCopy } from '@/content/site';
 // the trigger the fixed header fades in against.
 const bandClass = 'aspect-[16/5] w-full lg:max-h-[38vh]';
 
+// The headline is one content string; its halves either side of the separator become the lines.
+const HEADLINE_SEPARATOR = ' · ';
+const headlineParts = profile.headline.split(HEADLINE_SEPARATOR);
+
 export function Hero() {
   return (
     <section aria-labelledby="hero-heading" className="hero-timeline">
@@ -40,8 +44,15 @@ export function Hero() {
             {profile.name}
           </h1>
           <p className="mt-2 text-xl font-medium">{profile.title}</p>
-          <p className="mt-3 max-w-[640px] text-balance text-muted-foreground">
-            {profile.headline}
+          {/* The headline's two halves are explicit lines on phones and one unbreakable line from
+              640px, so its line count never depends on which font has arrived (D15 amendment). */}
+          <p className="mt-3 max-w-[640px] text-muted-foreground sm:whitespace-nowrap">
+            {headlineParts.map((part, index) => (
+              <span key={part}>
+                {index > 0 && <span className="hidden sm:inline">{HEADLINE_SEPARATOR}</span>}
+                <span className="block whitespace-nowrap sm:inline">{part}</span>
+              </span>
+            ))}
           </p>
           {siteCopy.tagline && (
             <p className="mt-2 font-mono text-label text-brand-text">{siteCopy.tagline}</p>

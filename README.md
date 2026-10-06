@@ -109,6 +109,8 @@ Node 24 (`.nvmrc`, `engines` in `package.json`) and npm 10 or newer.
 | `npm run lighthouse`   | Lighthouse CI against the built site                                       |
 | `npm run check`        | Every gate in CI order                                                     |
 
+Fonts: the two self-hosted faces fall back to a metric-adjusted local face while they load. Windows and macOS resolve it to Arial; Linux developers see Liberation Sans or DejaVu Sans instead, and the delayed-font e2e case covers both (a metric-compatible face and a mismatched one), so the first viewport must not move under either.
+
 `WEBMCP_ORIGIN_TRIAL_TOKEN` is an optional build-time variable (a GitHub repository variable in `deploy.yml`, not a secret, since an origin-trial token is bound to the origin and public): when set, the layout emits the Chrome origin-trial meta tag for WebMCP; when absent, nothing is emitted.
 
 Claude Code, or any agent that reads `AGENTS.md`, is expected to read it first.
