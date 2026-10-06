@@ -52,19 +52,21 @@ Each row has a full entry in `docs/DECISIONS.md`.
 | Server Components versus a client app | Home-page JavaScript, gzipped: 116.8 KB React and router, 27.0 KB Next helpers, 11.4 KB inline payload, 0 KB site code                 | 143.8 KB of external scripts against a 150 KB budget, held by an e2e guard                      |
 | Whether the LCP budget is met         | About paragraph paints at 140 ms unthrottled and 1.9 s under DevTools throttling; Lighthouse's simulation reports 3.2 s and a 93 score | Budget kept at 2.0 s; the simulated score is a known text-LCP artifact, kept as a warning in CI |
 | Documentation-only design change      | Pixel comparison of eight visual-check captures (four widths, two schemes) against `main`                                              | Zero differing pixels; the design document describes what ships, it does not lead it            |
+| Which WebMCP polyfill to pin          | Bundled gzipped size of the full package against the core polyfill: 73.5 KB (bundles an MCP server and transports) versus 8.0 KB       | The core polyfill only, loaded only when no native API exists; measured 7.8 KB in the export    |
 
 ### Budgets and how they are enforced
 
-| Budget                                        | Where it is enforced                                                                       |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Accessibility, best practices and SEO at 1.0  | `lighthouserc.json`, asserted as errors in CI on every pull request                        |
-| FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0 | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning         |
-| Home JavaScript under 150 KB gzipped          | `e2e/budgets.spec.ts`, measured on the served export                                       |
-| Cumulative layout shift of 0                  | `e2e/budgets.spec.ts` at four viewports, plus the Lighthouse assertion                     |
-| No client components or effects under `src/`  | `e2e/budgets.spec.ts`                                                                      |
-| Strict CSP with hashed inline scripts         | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it |
-| LCP under 2.0 s on throttled 4G               | A stated budget (`AGENTS.md`), measured in the decisions log rather than asserted in CI    |
-| Design tokens equal to the stylesheet         | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                   |
+| Budget                                                                | Where it is enforced                                                                         |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Accessibility, best practices and SEO at 1.0                          | `lighthouserc.json`, asserted as errors in CI on every pull request                          |
+| FCP 1.5 s, Speed Index 2 s, TBT 200 ms, CLS 0                         | `lighthouserc.json`, asserted as errors; performance category at 0.95 as a warning           |
+| Home JavaScript under 150 KB gzipped                                  | `e2e/budgets.spec.ts`: scripts the HTML references plus anything fetched before load         |
+| WebMCP island 10 KB, polyfill 12 KB, JSON 24 KB                       | `e2e/budgets.spec.ts`: one named lazy budget per set, each on its own trigger                |
+| Cumulative layout shift of 0                                          | `e2e/budgets.spec.ts` at four viewports, before and after the islands mount, plus Lighthouse |
+| Client components only in the island directories, no effects anywhere | `e2e/budgets.spec.ts`: an allowlist, and every `'use client'` file states why                |
+| Strict CSP with hashed inline scripts                                 | `scripts/headers.mjs` writes `_headers` after every build; `e2e/budgets.spec.ts` checks it   |
+| LCP under 2.0 s on throttled 4G                                       | A stated budget (`AGENTS.md`), measured in the decisions log rather than asserted in CI      |
+| Design tokens equal to the stylesheet                                 | `src/styles/tokens.test.ts`; `npm run design:lint` validates `DESIGN.md`                     |
 
 ### Token and cost discipline
 
@@ -106,6 +108,8 @@ Node 24 (`.nvmrc`, `engines` in `package.json`) and npm 10 or newer.
 | `npm run visual-check` | Screenshots the built site at several widths in both schemes for review    |
 | `npm run lighthouse`   | Lighthouse CI against the built site                                       |
 | `npm run check`        | Every gate in CI order                                                     |
+
+`WEBMCP_ORIGIN_TRIAL_TOKEN` is an optional build-time variable (a GitHub repository variable in `deploy.yml`, not a secret, since an origin-trial token is bound to the origin and public): when set, the layout emits the Chrome origin-trial meta tag for WebMCP; when absent, nothing is emitted.
 
 Claude Code, or any agent that reads `AGENTS.md`, is expected to read it first.
 

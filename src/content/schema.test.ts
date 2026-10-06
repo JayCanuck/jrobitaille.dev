@@ -5,8 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { earlier, employer } from '@/content/experience';
 import { projects } from '@/content/projects';
 import { images } from '@/content/images';
-import { education, openSource, profile, skills, summary } from '@/content/resume';
+import { availability, education, openSource, profile, skills, summary } from '@/content/resume';
 import {
+  availabilitySchema,
   BLURB_MAX_LENGTH,
   bulletText,
   earlierRolesSchema,
@@ -49,6 +50,12 @@ describe('content parses against the schema', () => {
 
   it('projects', () => {
     expect(issuesOf(projectsSchema.safeParse(projects))).toEqual([]);
+  });
+
+  it('availability as structured data for the agent-facing layer', () => {
+    expect(issuesOf(availabilitySchema.safeParse(availability))).toEqual([]);
+    expect(availability.open).toBe(true);
+    expect(availability.roles).toEqual(['full-stack', 'platform', 'developer tooling']);
   });
 
   it('summary and education are non-empty strings', () => {

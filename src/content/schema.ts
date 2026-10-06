@@ -5,9 +5,11 @@
 import { z } from 'zod';
 
 // Public, live proof only: https or a site-relative path (content.md).
-const hrefSchema = z.string().regex(/^(https:\/\/\S+|\/\S*)$/, 'https URL or site-relative path');
+export const hrefSchema = z
+  .string()
+  .regex(/^(https:\/\/\S+|\/\S*)$/, 'https URL or site-relative path');
 
-const linkSchema = z.object({
+export const linkSchema = z.object({
   label: z.string().min(1),
   href: hrefSchema
 });
@@ -89,6 +91,13 @@ const skillGroupSchema = z.object({
 
 export const skillsSchema = z.array(skillGroupSchema).length(5);
 
+// Structured availability for the agent-facing data only (D17); the page says it in prose.
+export const availabilitySchema = z.object({
+  open: z.boolean(),
+  roles: z.array(z.string().min(1)).min(1),
+  location: z.string().min(1)
+});
+
 export const profileSchema = z.object({
   name: z.string().min(1),
   title: z.string().min(1),
@@ -141,6 +150,11 @@ export const siteCopySchema = z.object({
   }),
   tagline: z.string(),
   footerLine: z.string(),
+  // The agent-tools badge and its popover (D17), rendered only after WebMCP registration succeeds.
+  agentTools: z.object({
+    badge: z.string().min(1),
+    explain: z.string().min(1)
+  }),
   notFound: z.object({
     title: z.string().min(1),
     body: z.string().min(1),
@@ -154,5 +168,6 @@ export type Link = z.infer<typeof linkSchema>;
 export type Employer = z.infer<typeof employerSchema>;
 export type EarlierRole = z.infer<typeof earlierRoleSchema>;
 export type SkillGroup = z.infer<typeof skillGroupSchema>;
+export type Availability = z.infer<typeof availabilitySchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Project = z.infer<typeof projectSchema>;

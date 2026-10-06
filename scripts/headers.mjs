@@ -1,6 +1,8 @@
 // Post-build: write out/_headers for Cloudflare static assets (D14). The CSP allows inline scripts
 // only by SHA-256 hash, computed here from every inline <script> in out/**/*.html, so script-src
-// never needs 'unsafe-inline'. Run by `npm run build` after `next build`.
+// never needs 'unsafe-inline'. /api/* is the agent-facing JSON (D17): CORS open so agents can fetch
+// it cross-origin, cached an hour since the names are not hashed. Run by `npm run build` after
+// `next build`.
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -55,6 +57,10 @@ const headers = `/*
 
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/api/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600
 `;
 
 writeFileSync(join(OUT, '_headers'), headers);

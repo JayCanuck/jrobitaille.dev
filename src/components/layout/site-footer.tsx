@@ -1,3 +1,4 @@
+import { Island } from '@/components/islands/island';
 import { profile } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 import { buildYear, sourceUrl } from '@/lib/site';
@@ -21,6 +22,10 @@ export function SiteFooter() {
         </a>
       </p>
       {siteCopy.footerLine && <p>{siteCopy.footerLine}</p>}
+      {/* Reserved 24 px row for the agent-tools badge, so its arrival after idle shifts nothing. */}
+      <div className="flex h-6 items-center justify-center">
+        <Island name="webmcp" />
+      </div>
     </footer>
   );
 }

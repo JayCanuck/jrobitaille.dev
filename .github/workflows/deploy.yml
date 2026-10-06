@@ -23,7 +23,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Optional repository variable (not a secret: a WebMCP origin-trial token is bound to the origin
+      # and public by nature). Absent, the build emits no origin-trial meta tag.
       - run: npm run build
+        env:
+          WEBMCP_ORIGIN_TRIAL_TOKEN: ${{ vars.WEBMCP_ORIGIN_TRIAL_TOKEN }}
       - id: deploy
         uses: cloudflare/wrangler-action@v4
         with:
