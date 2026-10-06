@@ -70,18 +70,21 @@ export function Konami({ replay, onArmed, toast, image }: KonamiProps) {
             {toast}
           </p>
           {/* The 404's drawing as a plain image: an SVG, requested only now. The float keyframe
-              carries its own centring translate, so the static form under reduced motion gets the
-              same offset from a utility. */}
-          <picture className="float relative left-1/2 block w-40 motion-reduce:-translate-x-1/2 sm:w-56">
-            <img
-              src={image.src}
-              width={image.width}
-              height={image.height}
-              alt=""
-              decoding="async"
-              className="h-auto w-full"
-            />
-          </picture>
+              carries a centring translate of half the drawing's width, so the drawing sits at the
+              midline of a box its own size, and the static form under reduced motion gets the same
+              offset from a utility. */}
+          <div className="relative aspect-square w-40 sm:w-56">
+            <picture className="float absolute inset-y-0 left-1/2 block w-full motion-reduce:-translate-x-1/2">
+              <img
+                src={image.src}
+                width={image.width}
+                height={image.height}
+                alt=""
+                decoding="async"
+                className="h-auto w-full"
+              />
+            </picture>
+          </div>
         </div>
       )}
     </>

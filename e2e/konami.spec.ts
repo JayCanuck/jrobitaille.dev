@@ -137,13 +137,34 @@ test('under reduced motion the payoff fades in place and the drawing does not fl
   // In place: inside the viewport's bottom-right corner, never off screen.
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  await drawingInsideViewport(page);
 });
 
-test('with motion on the payoff rises from the bottom edge', async ({ page }) => {
+// The drawing's painted box (transforms included) sits inside the viewport once it has risen.
+const drawingInsideViewport = async (page: Page) => {
+  await page.waitForTimeout(1000);
+  const inside = await page.evaluate(() => {
+    const picture = document.querySelector('[data-konami="showing"] picture');
+    const rect = picture?.getBoundingClientRect();
+    if (!rect) return 'no drawing';
+    return rect.right <= window.innerWidth + 0.5 &&
+      rect.bottom <= window.innerHeight + 0.5 &&
+      rect.left >= 0 &&
+      rect.top >= 0
+      ? 'inside'
+      : `outside: ${[rect.left, rect.top, rect.right, rect.bottom].map(n => Math.round(n)).join(',')} in ${String(window.innerWidth)}x${String(window.innerHeight)}`;
+  });
+  expect(inside).toBe('inside');
+};
+
+test('with motion on the payoff rises from the bottom edge and the drawing stays inside the viewport', async ({
+  page
+}) => {
   await page.goto('/', { waitUntil: 'load' });
   await type(page, KEYS);
   await expect(payoff(page)).toHaveCSS('animation-name', 'cow-visit');
   await expect(payoff(page).locator('picture')).toHaveCSS('animation-name', 'float');
+  await drawingInsideViewport(page);
 });
 
 test('axe is clean while the payoff shows', async ({ page }) => {
