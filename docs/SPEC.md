@@ -30,7 +30,7 @@ The site confirms the resume; it does not restate it (D11). There is no `/projec
 - **Skills:** grouped text chips in five groups (Languages, Frontend, Backend and data, Build and tooling, CI and cloud). No bars, no logo wall.
 - **Skills word cloud (shipped, D18):** the one flourish. A React Three Fiber cloud of the same terms as sprites on a slowly turning sphere, an opt-in view of the Toolbox column: the chips are the default, a List/Cloud control appears in the heading row once JavaScript runs with WebGL available, and pressing Cloud is the only thing that loads the chunk, into the same reserved box, so the terms appear once and nothing shifts. Without JavaScript or WebGL there is no control; under reduced motion the cloud shows on press but does not turn on its own; the chips are the no-JS and screen-reader version and stay in the tree; the canvas is `aria-hidden`; plain WebGL renderer. The chunk is 244 KB gzipped (three, fiber and the island), a chosen trade held by a 260 KB lazy budget.
 - **Footer:** one line, "© <build year> Jason Robitaille · jason.aj.robitaille@gmail.com · Source", the email as `mailto:`, Source linking to the repository, the year a build-time constant.
-- **Easter egg:** Konami code as a lazily loaded client island.
+- **Easter egg (shipped, D14 amendment):** the Konami code as a client island loaded on the first key press, 3 KB budget; the payoff brings the 404's UFO and cow to the bottom-right corner for a few seconds with the 404 line as a toast, a fixed layer that changes no layout, a fade in place under reduced motion.
 
 ## 3. Design direction
 

@@ -163,6 +163,7 @@ export const siteCopySchema = z.object({
   notFound: z.object({
     title: z.string().min(1),
     body: z.string().min(1),
+    cow: z.string().min(1),
     home: z.string().min(1)
   })
 });

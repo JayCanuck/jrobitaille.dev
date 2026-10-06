@@ -48,7 +48,8 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 ## Phase 4: WebMCP island, word cloud, loop demo
 
 - [x] WebMCP tools from content, polyfill fallback, badge, `/api/profile.json`, Vitest coverage, origin-trial meta (D17; also `/api/profile.schema.json`, generated `/llms.txt`, the island loader and the named lazy budgets)
-- [x] Skills word cloud island (lazy, reduced-motion aware, `aria-hidden` canvas; cloud-first in the Toolbox box with the chips as fallback, the three-part trigger and the 260 KB lazy budget, D18)
+- [x] Skills word cloud island (lazy, reduced-motion aware, `aria-hidden` canvas; the chips by default and the cloud on the Cloud toggle inside the Toolbox box, the 260 KB lazy budget, D18)
+- [x] Konami egg island on the first keydown, 3 KB lazy budget, the UFO and cow with the 404 line as the payoff (D14 amendment)
 - [ ] `lighthouse-loop` bounded autonomous-loop demo; dynamic-workflow demo
 - [ ] README "How this was built" filled in with costs
 
