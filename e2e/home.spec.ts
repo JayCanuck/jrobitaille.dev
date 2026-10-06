@@ -179,14 +179,28 @@ test('with motion on, nothing stays dim: the stagger settles and reveals complet
   page
 }) => {
   await page.goto('/', { waitUntil: 'load' });
-  // The stagger is done within 600 ms of load (D15); every hero child is fully opaque at 800 ms.
-  await page.waitForTimeout(800);
-  const dimHeroChildren = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.stagger > *'))
-      .map(element => getComputedStyle(element).opacity)
-      .filter(opacity => Number(opacity) < 1)
+  // The stagger is done within 600 ms of load (D15) on an idle machine. Wait on the state, not on
+  // a fixed delay: first on the hero children's own animations finishing, then on every child
+  // being opaque, with a long bound so a loaded test machine that runs the animation slowly still
+  // gets its full run before the check.
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from(document.querySelectorAll('.stagger > *'))
+        .flatMap(element => element.getAnimations())
+        .map(animation => animation.finished)
+    )
   );
-  expect(dimHeroChildren).toEqual([]);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          Array.from(document.querySelectorAll('.stagger > *'))
+            .map(element => getComputedStyle(element).opacity)
+            .filter(opacity => Number(opacity) < 1)
+        ),
+      { timeout: 10_000 }
+    )
+    .toEqual([]);
 
   // Scroll-driven reveals finish within the first 25 to 30 % of an element's entry, so once a
   // section has arrived nothing fully inside the viewport may still be dim. An element straddling
@@ -199,24 +213,32 @@ test('with motion on, nothing stays dim: the stagger settles and reveals complet
       return window.scrollY + section.getBoundingClientRect().top - margin;
     }, id);
     await scrollSmoothlyTo(page, top);
-    await page.waitForTimeout(200);
-    const dim = await page.evaluate(() =>
-      Array.from(document.body.querySelectorAll('*'))
-        .filter(element => {
-          const box = element.getBoundingClientRect();
-          return (
-            box.width > 0 &&
-            box.height > 0 &&
-            box.top >= 0 &&
-            box.left >= 0 &&
-            box.bottom <= window.innerHeight &&
-            box.right <= window.innerWidth &&
-            Number(getComputedStyle(element).opacity) < 1
-          );
-        })
-        .map(element => `${element.tagName.toLowerCase()}.${element.getAttribute('class') ?? ''}`)
-    );
-    expect(dim, id).toEqual([]);
+    // The header's 200 ms threshold fade may still be playing: poll the asserted state (nothing
+    // in view dim) rather than waiting a fixed time for it.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Array.from(document.body.querySelectorAll('*'))
+              .filter(element => {
+                const box = element.getBoundingClientRect();
+                return (
+                  box.width > 0 &&
+                  box.height > 0 &&
+                  box.top >= 0 &&
+                  box.left >= 0 &&
+                  box.bottom <= window.innerHeight &&
+                  box.right <= window.innerWidth &&
+                  Number(getComputedStyle(element).opacity) < 1
+                );
+              })
+              .map(
+                element => `${element.tagName.toLowerCase()}.${element.getAttribute('class') ?? ''}`
+              )
+          ),
+        { message: id, timeout: 10_000 }
+      )
+      .toEqual([]);
   }
 });
 
@@ -364,16 +386,34 @@ test('with motion on, the header is hidden over the hero and shown once it has l
     () => document.querySelector('section.hero-timeline')?.getBoundingClientRect().height ?? 0
   );
   expect(heroHeight).toBeGreaterThan(0);
-  const settleAt = async (y: number) => {
+  // The header's opacity once its own time-based animations have finished; -1 while one still
+  // runs, so a poll waits on the fade itself rather than on a fixed delay.
+  const settledOpacity = () =>
+    header.evaluate(el => {
+      const running = el
+        .getAnimations()
+        .some(
+          animation =>
+            animation.playState === 'running' && !(animation.timeline instanceof ScrollTimeline)
+        );
+      return running ? -1 : Number(getComputedStyle(el).opacity);
+    });
+  const expectOpacityAt = async (y: number, expected: number) => {
     await scrollSmoothlyTo(page, y);
-    return Number(await header.evaluate(el => getComputedStyle(el).opacity));
+    await expect
+      .poll(settledOpacity, { message: `header opacity at ${String(y)}`, timeout: 10_000 })
+      .toBe(expected);
   };
-  expect(await settleAt(0)).toBe(0);
-  expect(await settleAt(heroHeight + 10)).toBe(1);
+  await expectOpacityAt(0, 0);
+  await expectOpacityAt(heroHeight + 10, 1);
   // Any part of the hero still in view keeps the header hidden.
-  expect(await settleAt(heroHeight - 40)).toBe(0);
+  await expectOpacityAt(heroHeight - 40, 0);
   for (const y of [heroHeight * 0.5, heroHeight * 0.9, heroHeight * 2, 0, heroHeight + 40]) {
-    const opacity = await settleAt(y);
+    await scrollSmoothlyTo(page, y);
+    await expect
+      .poll(settledOpacity, { message: `header settled at ${String(y)}`, timeout: 10_000 })
+      .not.toBe(-1);
+    const opacity = await settledOpacity();
     expect(opacity < 0.05 || opacity > 0.95, `opacity ${String(opacity)} at ${String(y)}`).toBe(
       true
     );

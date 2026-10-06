@@ -4,35 +4,47 @@ One-shot method demo (spec §6, tier 3). The script is `docs/workflows/webmcp-to
 
 ## Shape
 
-- Eight workers on Sonnet in parallel, one per tool. Each got the shared contract (`tools/types.ts`), the data shape (`profile-data.ts`), the tool's name, description, input and output spec, and the instruction to write the failing test first, then the handler, then run that test file and ESLint on the two files it owned.
-- One review on Opus after all eight returned: an adversarial read of every file and test against the engineering rules, returning a verdict and findings as path, problem, why, fix. It did not edit.
+- Eight workers on Claude Sonnet 5.5 in parallel, one per tool. Each got the shared contract (`tools/types.ts`), the data shape (`profile-data.ts`), the tool's name, description, input and output spec, and the instruction to write the failing test first, then the handler, then run that test file and ESLint on the two files it owned.
+- One review on Claude Opus 5.5 after all eight returned: an adversarial read of every file and test against the engineering rules, returning a verdict and findings as path, problem, why, fix. It did not edit.
 - The main thread applied the findings by hand and re-ran the full suite.
 
 ## Result
 
-All eight workers returned green (test failed first, then passed; ESLint clean). The review returned `fix first` with eleven findings, of which the systemic one was that every tool returned references into the shared profile data; the rest were an untested missing-id path in the two lookup tools, a try/catch that could never run, a description that promised a field two roles do not have, an untested branch in `get_project`, an ordering claim no test checked, and an import guard that only matched one spelling. Every finding was applied: a deep copy in the shared `success` helper, input guards, the description fix, the extra tests, and a stricter guard. One finding was about the spec text, applied in `docs/SPEC.md` §7.
+All eight workers returned green (test failed first, then passed; ESLint clean). The review returned `fix first` with eleven findings. The systemic one: every tool returned references into the shared profile data, so a caller that mutated a result would have changed every later answer. The rest: an untested missing-id path in the two lookup tools, a try/catch that could never run, a description that promised a field two roles do not have, an untested branch in `get_project`, an ordering claim no test checked, and an import guard that matched only one spelling. Every finding was applied: a deep copy in the shared `success` helper, input guards, the description fix, the extra tests, a stricter guard, and one wording fix in `docs/SPEC.md` §7.
 
-## Cost
+## Token usage
 
-Per agent, as the workflow run reported them (tokens are the agent's total context tokens across its turns; the harness reported no dollar figure, so none is claimed here):
+Tokens are the measured unit. Two sources reported them, and they disagree:
 
-| Agent                | Model  | Tokens  | Tool calls | Wall time |
-| -------------------- | ------ | ------- | ---------- | --------- |
-| tool:get_profile     | Sonnet | 51,005  | 5          | 28.0 s    |
-| tool:list_experience | Sonnet | 52,960  | 5          | 29.7 s    |
-| tool:get_experience  | Sonnet | 53,183  | 5          | 35.3 s    |
-| tool:list_projects   | Sonnet | 51,095  | 5          | 29.7 s    |
-| tool:get_project     | Sonnet | 51,675  | 6          | 48.3 s    |
-| tool:get_skills      | Sonnet | 52,524  | 5          | 28.9 s    |
-| tool:get_contact     | Sonnet | 52,640  | 5          | 28.6 s    |
-| tool:get_resume_url  | Sonnet | 51,647  | 5          | 29.0 s    |
-| review               | Opus   | 69,107  | 8          | 97.3 s    |
-| **Total**            |        | 485,836 | 49         | 150.4 s   |
+- **Workflow summary.** The run's own summary reported one undifferentiated `tokens` figure per agent, 485,836 in total.
+- **Agent transcripts.** Each agent's transcript carries the API `usage` object of every call it made (`input_tokens`, `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`). Summed per agent, deduplicated by message id, the run used 1,655,365 tokens across the four fields: 64 input, 8,609 output, 1,330,979 cache read, 315,713 cache write (all 5-minute writes; no 1-hour writes).
 
-Wall time for the whole run was 150 s: the eight workers overlapped (the slowest took 48 s) and the review took 97 s after them.
+**Cause of the discrepancy, identified:** the summary figure matches the context size of each agent's final API call (that call's input plus cache read plus cache write), within about 24 tokens on every agent. It is a snapshot of how large the context had grown, not usage summed across the agent's calls, and it excludes output tokens. Across the nine agents it comes to 29% of the transcript total. The record below therefore uses the transcript counts; the summary figure is kept only as this finding, so no later record mistakes a context size for a usage total.
 
-## What it says
+Per agent, from the transcripts. "Calls" is the number of API calls the agent made; every call re-read the shared prefix (the repository instructions, the contract and the data shape) from the cache, which is why cache reads dominate.
 
-- The parallel part was cheap in wall time and the files were uniform because the contract was written first by hand. The workers' notes show the kind of drift a shared contract does not prevent: three of eight hand-copied nested objects in different ways, which is exactly what the review caught.
-- The review was worth more than any single worker: the aliasing bug was in all eight files and no worker's own tests could see it, because each tested its own handler against `toEqual`.
-- For eight files of 20 to 40 lines each, a workflow is more process than the code needs. The demo stays one-shot by rule (`AGENTS.md`).
+| Agent                | Model      | Calls | Input | Output | Cache read | Cache write (5 min) | Wall time | List-price equivalent |
+| -------------------- | ---------- | ----: | ----: | -----: | ---------: | ------------------: | --------: | --------------------: |
+| tool:get_profile     | Sonnet 5.5 |     3 |     6 |    592 |     94,152 |              50,979 |    28.0 s |               $0.1522 |
+| tool:list_experience | Sonnet 5.5 |     3 |     6 |    708 |    120,236 |              28,651 |    29.7 s |               $0.1028 |
+| tool:get_experience  | Sonnet 5.5 |     3 |     6 |    696 |    120,430 |              28,884 |    35.3 s |               $0.1033 |
+| tool:list_projects   | Sonnet 5.5 |     3 |     6 |    716 |    118,427 |              26,796 |    29.7 s |               $0.0978 |
+| tool:get_project     | Sonnet 5.5 |     4 |     8 |    737 |    169,891 |              27,376 |    48.3 s |               $0.1098 |
+| tool:get_skills      | Sonnet 5.5 |     3 |     6 |    695 |    120,166 |              28,241 |    28.9 s |               $0.1016 |
+| tool:get_contact     | Sonnet 5.5 |     3 |     6 |    588 |    120,172 |              28,341 |    28.6 s |               $0.1008 |
+| tool:get_resume_url  | Sonnet 5.5 |     3 |     6 |    710 |    119,260 |              27,348 |    29.0 s |               $0.0993 |
+| review               | Opus 5.5   |     7 |    14 |  3,167 |    348,245 |              69,097 |    97.3 s |               $0.4785 |
+| **Sonnet 5.5 total** |            |    25 |    50 |  5,442 |    982,734 |             246,616 |           |           **$0.8676** |
+| **Opus 5.5 total**   |            |     7 |    14 |  3,167 |    348,245 |              69,097 |           |           **$0.4785** |
+| **Run total**        |            |    32 |    64 |  8,609 |  1,330,979 |             315,713 |   150.4 s |           **$1.3461** |
+
+Wall times are from the workflow summary (each agent's start to finish); the whole run took 150.4 s because the eight workers overlapped (the slowest took 48.3 s) and the review ran after them.
+
+**List-price equivalent.** A derived figure, computed from the transcript counts at the published Claude API rates on platform.claude.com/docs/en/about-claude/pricing as read on 2026-10-05: Claude Sonnet 5.5 at $2 input, $10 output, $0.20 cache read, $2.50 five-minute cache write per million tokens; Claude Opus 5.5 at $4 input, $20 output, $0.20 cache read, $5 five-minute cache write per million tokens. The run was made on a subscription plan, so this is a reference figure, not a bill.
+
+## What this one run showed
+
+Both points are observations from this single run, not general claims.
+
+- **The review tier earned its place here.** The one finding that mattered most, every handler returning references into the shared data, was present in all eight files and invisible to each worker's own tests, which compared values with `toEqual`. One Opus review (36% of the run's list-price equivalent, 65% of its wall time) found it, and it was fixed once in the shared helper. In this run, a review after parallel workers caught what parallel workers could not.
+- **The fan-out bought wall time; the transcripts say nothing about token efficiency.** Eight files landed in 48 s of wall time instead of eight sequential writes. Per worker the transcripts show about 150,000 tokens for a 20-to-40-line file and its test, 80% of them cache reads of the same shared prefix at the cache-read rate. Whether one agent writing the eight files in sequence would have used fewer tokens was not measured, so this record makes no claim either way; what it can say is that the cost of the parallel part was dominated by re-reading shared context, not by the files written.
