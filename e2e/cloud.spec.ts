@@ -4,7 +4,7 @@
 // saveData, no WebGL and no input each leave the chips with no cloud chunk requested. Intent is an
 // input event, never a scroll event (D18).
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
 
 import { skills } from '../src/content/resume';
 import { siteCopy } from '../src/content/site';
@@ -64,8 +64,8 @@ test('chips are the view before the cloud mounts, and stay in the tree after', a
   expect(after?.width).toBe(before?.width);
   expect(after?.height).toBe(before?.height);
   expect(before?.width).toBeGreaterThan(0);
-  // The box is at least a square of the column width.
-  expect(after?.height ?? 0).toBeGreaterThanOrEqual((after?.width ?? 0) - 1);
+  // The box is at least a 4:3 slot of the column width.
+  expect(after?.height ?? 0).toBeGreaterThanOrEqual((after?.width ?? 0) * 0.75 - 1);
 });
 
 test('the List control fades the chips back and pauses the cloud; Cloud resumes it', async ({
@@ -89,6 +89,133 @@ test('the List control fades the chips back and pauses the cloud; Cloud resumes 
   await cloud.click();
   await expect(island(page)).toHaveAttribute('data-cloud-view', 'cloud');
   await expect(island(page)).toHaveAttribute('data-cloud-state', 'running');
+});
+
+// The cloud's rotation, as the scene publishes it on the canvas each frame.
+const rotationY = async (page: Page) => {
+  await expect(canvas(page)).toHaveAttribute('data-rotation', /./, { timeout: 10_000 });
+  const value = (await canvas(page).getAttribute('data-rotation')) ?? '0 0';
+  return Number(value.split(' ')[0]);
+};
+
+test('a drag rotates the cloud and the idle rotation resumes after release', async ({ page }) => {
+  await mountCloud(page);
+  const box = await canvas(page).boundingBox();
+  if (!box) throw new Error('no canvas box');
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  const before = await rotationY(page);
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  // A press alone is not a drag: capture and the grabbing cursor come after the slop.
+  await expect(island(page)).toHaveClass(/cursor-grab/);
+  await page.mouse.move(cx + 200, cy + 30, { steps: 10 });
+  await expect(island(page)).toHaveClass(/cursor-grabbing/);
+  await page.waitForTimeout(100);
+  const during = await rotationY(page);
+  // 200 px of drag is about a radian; the idle turn alone would be a few hundredths.
+  expect(during - before).toBeGreaterThan(0.6);
+  await page.mouse.up();
+  await expect(island(page)).toHaveClass(/cursor-grab/);
+  await expect(island(page)).not.toHaveClass(/cursor-grabbing/);
+  // Inertia settles within about a second; after that the idle rotation is turning again.
+  await page.waitForTimeout(1500);
+  const settled = await rotationY(page);
+  await page.waitForTimeout(500);
+  const later = await rotationY(page);
+  expect(later - settled).toBeGreaterThan(0.03);
+  expect(later - settled).toBeLessThan(0.2);
+});
+
+test('hovering without dragging does not stop the rotation', async ({ page }) => {
+  await mountCloud(page);
+  const box = await canvas(page).boundingBox();
+  if (!box) throw new Error('no canvas box');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.waitForTimeout(300);
+  const first = await rotationY(page);
+  await page.waitForTimeout(500);
+  const second = await rotationY(page);
+  expect(second - first).toBeGreaterThan(0.03);
+  await expect(island(page)).toHaveAttribute('data-cloud-state', 'running');
+});
+
+// Touch gestures over the mounted cloud, in a touch context on the phone project. A vertical pan
+// belongs to the page (touch-action: pan-y) and never reaches the drag; a horizontal swipe is a drag.
+const swipe = async (page: Page, from: { x: number; y: number }, to: { x: number; y: number }) => {
+  const client = await page.context().newCDPSession(page);
+  const steps = 12;
+  await client.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x: from.x, y: from.y }]
+  });
+  for (let i = 1; i <= steps; i++) {
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [
+        { x: from.x + ((to.x - from.x) * i) / steps, y: from.y + ((to.y - from.y) * i) / steps }
+      ]
+    });
+    await page.waitForTimeout(30);
+  }
+  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await client.detach();
+};
+
+const touchPhonePage = async (browser: Browser, baseURL: string | undefined) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    baseURL
+  });
+  return { context, page: await context.newPage() };
+};
+
+test('on the phone, a vertical swipe on the cloud scrolls the page and leaves the rotation alone', async ({
+  browser,
+  baseURL
+}) => {
+  test.skip(test.info().project.name !== 'mobile-390', 'the phone project only');
+  const { context, page } = await touchPhonePage(browser, baseURL);
+  await mountCloud(page);
+  const box = await canvas(page).boundingBox();
+  if (!box) throw new Error('no canvas box');
+  const scrollBefore = await page.evaluate(() => window.scrollY);
+  const before = await rotationY(page);
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await swipe(page, { x, y: y + 80 }, { x: x + 4, y: y - 120 });
+  await page.waitForTimeout(600);
+  const scrolled = (await page.evaluate(() => window.scrollY)) - scrollBefore;
+  // A 200 px pan scrolls about 200 px; the exact figure depends on the browser's touch physics.
+  expect(scrolled).toBeGreaterThan(120);
+  expect(scrolled).toBeLessThan(600);
+  const after = await rotationY(page);
+  // Only the idle turn (0.12 rad/s) moved it; a drag would have added a radian.
+  expect(Math.abs(after - before)).toBeLessThan(0.3);
+  await context.close();
+});
+
+test('on the phone, a horizontal swipe on the cloud rotates it and does not scroll the page', async ({
+  browser,
+  baseURL
+}) => {
+  test.skip(test.info().project.name !== 'mobile-390', 'the phone project only');
+  const { context, page } = await touchPhonePage(browser, baseURL);
+  await mountCloud(page);
+  const box = await canvas(page).boundingBox();
+  if (!box) throw new Error('no canvas box');
+  const scrollBefore = await page.evaluate(() => window.scrollY);
+  const before = await rotationY(page);
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await swipe(page, { x: x - 100, y }, { x: x + 100, y: y + 6 });
+  await page.waitForTimeout(100);
+  const after = await rotationY(page);
+  expect(after - before).toBeGreaterThan(0.6);
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
+  await context.close();
 });
 
 test('reduced motion leaves the chips and requests no cloud chunk', async ({ page, request }) => {

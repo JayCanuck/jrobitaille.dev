@@ -5,8 +5,8 @@ import { skills } from '@/content/resume';
 import { siteCopy } from '@/content/site';
 
 // Toolbox (D18): the cloud is the primary view and the chips are the fallback, both inside one
-// reserved box whose height is the larger of the chip block and a square of the column width, so
-// nothing shifts when the island mounts. The chips render at first paint in every case, exactly as
+// reserved box whose height is the larger of the chip block and a 4:3 slot of the column width,
+// so nothing shifts when the island mounts. The chips render at first paint in every case, exactly as
 // before; once the cloud has mounted they fade to opacity 0 and ignore the pointer but stay in the
 // DOM and the accessibility tree (never display none or visibility hidden). The heading row holds
 // the slot the island's List/Cloud control renders into. No JS, reduced motion, reduced data,
@@ -30,7 +30,7 @@ export function Skills() {
             labels: siteCopy.skillsView,
             toggleSlotId: 'skills-view'
           }}
-          className="group relative min-h-[100cqw]"
+          className="group relative min-h-[75cqw]"
         >
           <div className="flex flex-col gap-4 transition-opacity duration-300 group-has-[[data-cloud-view=cloud]]:pointer-events-none group-has-[[data-cloud-view=cloud]]:opacity-0 motion-reduce:transition-none">
             {skills.map(group => (
