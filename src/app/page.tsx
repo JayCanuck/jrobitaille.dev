@@ -21,7 +21,7 @@ export default function HomePage() {
         <Hero />
         <div className="relative z-10 bg-background">
           <div className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 sm:px-6">
-            <div className="grid gap-16 pt-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-20 lg:pt-24">
+            <div className="grid gap-16 pt-16 lg:grid-cols-2 lg:gap-20 lg:pt-24">
               <About />
               <Skills />
             </div>

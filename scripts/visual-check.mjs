@@ -132,6 +132,19 @@ for (const scheme of schemes) {
         }, id);
         if (!found) continue;
         await page.waitForTimeout(SETTLE_MS);
+        if (id === 'skills') {
+          // The cloud loads only on the Cloud control (D18): press it where the page offers it, then
+          // let the chunk load and mount; bounded, never required.
+          const cloud = page.getByRole('button', { name: 'Cloud' });
+          if (await cloud.count()) {
+            await cloud.click();
+            await page
+              .locator('[data-island="cloud"] [data-cloud-view="cloud"]')
+              .waitFor({ timeout: 8000 })
+              .catch(() => undefined);
+            await page.waitForTimeout(SETTLE_MS);
+          }
+        }
         await shot(`-${id}`);
       }
     } else {

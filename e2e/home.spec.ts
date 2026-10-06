@@ -221,6 +221,13 @@ test('with motion on, nothing stays dim: the stagger settles and reveals complet
           page.evaluate(() =>
             Array.from(document.body.querySelectorAll('*'))
               .filter(element => {
+                // The Toolbox chips fade by design once the cloud has mounted over them (D18).
+                if (
+                  element
+                    .closest('[data-island="cloud"]')
+                    ?.querySelector('[data-cloud-view="cloud"]')
+                )
+                  return false;
                 const box = element.getBoundingClientRect();
                 return (
                   box.width > 0 &&

@@ -155,6 +155,11 @@ export const siteCopySchema = z.object({
     badge: z.string().min(1),
     explain: z.string().min(1)
   }),
+  // The Toolbox view toggle (D18), rendered only once the cloud has mounted.
+  skillsView: z.object({
+    list: z.string().min(1),
+    cloud: z.string().min(1)
+  }),
   notFound: z.object({
     title: z.string().min(1),
     body: z.string().min(1),

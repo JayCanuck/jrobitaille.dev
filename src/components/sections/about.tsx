@@ -13,7 +13,7 @@ export function About() {
     >
       <SectionHeading id="about-heading">{siteCopy.headings.about}</SectionHeading>
       {profile.about.map(paragraph => (
-        <p key={paragraph} className="max-w-[62ch]">
+        <p key={paragraph} className="max-w-[56ch]">
           {paragraph}
         </p>
       ))}

@@ -48,7 +48,7 @@ Done 2026-10-04: decisions D1 to D3, empty repo, Cloudflare zones and secrets, W
 ## Phase 4: WebMCP island, word cloud, loop demo
 
 - [x] WebMCP tools from content, polyfill fallback, badge, `/api/profile.json`, Vitest coverage, origin-trial meta (D17; also `/api/profile.schema.json`, generated `/llms.txt`, the island loader and the named lazy budgets)
-- [ ] Skills word cloud island (lazy, reduced-motion aware, `aria-hidden` canvas)
+- [x] Skills word cloud island (lazy, reduced-motion aware, `aria-hidden` canvas; cloud-first in the Toolbox box with the chips as fallback, the three-part trigger and the 260 KB lazy budget, D18)
 - [ ] `lighthouse-loop` bounded autonomous-loop demo; dynamic-workflow demo
 - [ ] README "How this was built" filled in with costs
 

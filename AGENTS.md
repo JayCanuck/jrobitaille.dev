@@ -33,7 +33,7 @@ Non-goals: blog, contact form, CMS, backend, analytics dashboards, 3D hero, anim
 
 ## Engineering rules
 
-- **Static first.** Every page is a Server Component rendered at build. Client components only for: WebMCP registration, mobile nav sheet, the skills word cloud, the easter egg. Each `'use client'` file carries a comment saying why.
+- **Static first.** Every page is a Server Component rendered at build. Client components only for: WebMCP registration, mobile nav sheet, the skills word cloud, the easter egg. Each `'use client'` file carries a comment saying why. Islands receive data as props or fetch the public JSON; they never import content modules (a unit test under `src/components/islands/` enforces it).
 - **No `useEffect` for data or layout.** Content is imported, never fetched. Use CSS (`@supports`, container queries) before any DOM measurement; a ref-based layout effect is the last resort and must be justified in a comment.
 - **No layout shift.** Explicit `width`/`height` on every image, `next/font`, no late-loading fonts or icons, reserve space for anything that hydrates. CLS budget is 0.
 - **Small files.** Components under ~150 lines, files under ~200. One component per file, props typed with a `Props` suffix, named exports except Next.js route files.
