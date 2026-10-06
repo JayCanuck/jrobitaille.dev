@@ -55,7 +55,8 @@ const placed = layoutTimeline(items);
 // Dot on the single rail below 1024 px; at 1024+ the label knocks out the centre rail instead.
 const labelClass =
   'relative pl-16 before:absolute before:top-1.5 before:left-[calc(1.5rem-6px)] before:size-3 before:rounded-full before:border-2 before:border-brand before:bg-background lg:col-span-3 lg:col-start-1 lg:pl-0 lg:text-center lg:before:hidden';
-const knockout = 'relative inline-block bg-background px-3';
+// One line whatever the font, so a wider fallback cannot wrap the label (D15 amendment).
+const knockout = 'relative inline-block bg-background px-3 whitespace-nowrap';
 
 // Single left rail with round year badges below 1024 px; a centre rail from 1024 px where the cards
 // alternate sides and interleave, each starting at the previous card's midpoint (D15).

@@ -8,11 +8,24 @@ import { siteUrl } from '@/lib/site';
 import '@/styles/globals.css';
 
 // Two self-hosted fonts via next/font: the variable sans for body, the mono for labels, dates and
-// the timeline rail (D14). Default swap with the metric-matched fallback: no layout shift (spec §4).
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+// the timeline rail (D14). Both are preloaded, with the default swap: a font that lands after first
+// paint is swapped in, and the centred hero text re-centres by a few pixels (a sub-perceptual
+// shift, measured and accepted; `optional` was rejected because it would cost a slow first-load
+// visitor the typeface for the whole visit). The metric-adjusted fallback faces are hand-written in
+// globals.css with a stack that reaches Android and bare Linux (Arial, Liberation Sans, Arimo,
+// Roboto), so next/font's own Arial-only fallback is off and the families are listed instead
+// (D15 amendment).
+const geistSans = Geist({
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+  adjustFontFallback: false,
+  fallback: ['Geist Fallback', 'sans-serif']
+});
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
-  subsets: ['latin']
+  subsets: ['latin'],
+  adjustFontFallback: false,
+  fallback: ['Geist Mono Fallback', 'monospace']
 });
 
 export const metadata: Metadata = {

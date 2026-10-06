@@ -44,7 +44,8 @@ export default defineConfig([
     'next-env.d.ts',
     'playwright-report/**',
     'test-results/**',
-    '.wrangler/**'
+    '.wrangler/**',
+    '.visual/**'
   ]),
   ...nextConfigs,
   { rules: jsxA11y.flatConfigs.strict.rules },

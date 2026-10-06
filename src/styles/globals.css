@@ -8,6 +8,31 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+/* Fallback faces for the two self-hosted fonts (D15 amendment). next/font would write these with
+   src: local(Arial) only; Android and bare Linux have no Arial, so the stack reaches the closest
+   face each platform has, in order, and the same metric overrides apply to whichever face
+   matches. Ascent, descent and line gap are next/font's values for Arial; size-adjust is calibrated
+   on this site's own text (next/font's 104.76% and 134.59% left the fallback 1.4% too wide for the
+   body prose and 4 to 8% too wide for the mono chips and labels, enough to change line counts).
+   next/font is told not to generate its own fallback and to list these families after the web
+   font. The delayed-font e2e copies these values when it forces a face. */
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo'), local('Roboto');
+  ascent-override: 95.94%;
+  descent-override: 28.16%;
+  line-gap-override: 0%;
+  size-adjust: 103.34%;
+}
+@font-face {
+  font-family: 'Geist Mono Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo'), local('Roboto');
+  ascent-override: 74.67%;
+  descent-override: 21.92%;
+  line-gap-override: 0%;
+  size-adjust: 126%;
+}
+
 /* The alternating timeline places every item on an explicit grid row computed at build time
    (src/lib/timeline.ts); the class names are assembled there, so they are listed here for Tailwind. */
 @source inline('lg:row-start-{1..24}');

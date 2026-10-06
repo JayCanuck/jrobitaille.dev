@@ -26,6 +26,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # Diagnostic only, no font installs (D15 amendment): the layout must be immune to whatever
+      # fallback face a platform has, and the delayed-font e2e forces both a metric-compatible
+      # face and a mismatched one. This prints what the runner would resolve, so the log names them.
+      - name: Fallback font resolution (diagnostic)
+        run: |
+          for family in Arial 'Liberation Sans' Arimo Roboto 'DejaVu Sans' sans-serif; do
+            echo "fc-match '$family' -> $(fc-match "$family")"
+          done
       - run: npm run check
       - uses: actions/upload-artifact@v7
         if: failure()
