@@ -14,15 +14,18 @@ const social = [
   { label: 'GitHub', href: profile.links.github, Icon: GithubIcon }
 ];
 
-// The pill keeps the lg button size (36 px); the links take that height so the row centres.
+// The pill keeps the lg button size (36 px); the links take that height so the row centres. The row
+// is a fixed 36 px and never wraps, so a wider fallback font before Geist arrives cannot add a
+// second line (a 48 px shift of everything below, D15 amendment); on phones the gap and the pill's
+// padding are a step smaller so the three items fit the fallback width with room to spare.
 const resumeButtonClass = buttonVariants({
   size: 'lg',
-  className: 'rounded-full bg-brand px-4 text-brand-foreground hover:bg-brand/85'
+  className: 'rounded-full bg-brand px-3 text-brand-foreground hover:bg-brand/85 sm:px-4'
 });
 
 export function HeroActions() {
   return (
-    <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+    <ul className="flex h-9 flex-nowrap items-center justify-center gap-x-3.5 sm:gap-x-6">
       <li className="flex">
         <a href={resumeLink.href} className={resumeButtonClass}>
           <FileText data-icon="inline-start" />

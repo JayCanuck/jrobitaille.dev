@@ -8,11 +8,15 @@ import { siteUrl } from '@/lib/site';
 import '@/styles/globals.css';
 
 // Two self-hosted fonts via next/font: the variable sans for body, the mono for labels, dates and
-// the timeline rail (D14). Default swap with the metric-matched fallback: no layout shift (spec §4).
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+// the timeline rail (D14). Both are preloaded and carry a metric-adjusted fallback, and
+// `display: 'optional'` means a font that misses first paint is not swapped in on that load: the
+// centred hero text re-centres by a few pixels at a late swap, which the layout-shift API counts
+// even in a full-width block, so no swap is the only way to zero (D15 amendment, 2026-10-05).
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'], display: 'optional' });
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
-  subsets: ['latin']
+  subsets: ['latin'],
+  display: 'optional'
 });
 
 export const metadata: Metadata = {

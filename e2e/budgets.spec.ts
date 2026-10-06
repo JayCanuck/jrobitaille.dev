@@ -96,26 +96,51 @@ const initialScripts = async (page: Page) => {
 
 const badge = (page: Page) => page.getByRole('button', { name: siteCopy.agentTools.badge });
 
+// Cumulative layout shift so far, with the shifted elements and their rects named, so a failure
+// says what moved and by how much rather than a bare number.
 const measureCls = (page: Page) =>
   page.evaluate(
     () =>
-      new Promise<number>(resolve => {
+      new Promise<{ total: number; sources: string[] }>(resolve => {
         let total = 0;
+        const sources: string[] = [];
         const observer = new PerformanceObserver(list => {
           for (const entry of list.getEntries() as (PerformanceEntry & {
             value: number;
             hadRecentInput: boolean;
+            sources?: {
+              node: Element | null;
+              previousRect: DOMRectReadOnly;
+              currentRect: DOMRectReadOnly;
+            }[];
           })[]) {
-            if (!entry.hadRecentInput) total += entry.value;
+            if (entry.hadRecentInput) continue;
+            total += entry.value;
+            const rect = (r: DOMRectReadOnly) =>
+              [r.x, r.y, r.width, r.height].map(n => String(Math.round(n))).join(',');
+            for (const source of entry.sources ?? []) {
+              const node = source.node;
+              const name = node
+                ? `${node.tagName.toLowerCase()}.${node.getAttribute('class') ?? ''}`
+                : 'text';
+              sources.push(
+                `${entry.value.toFixed(4)} at ${String(Math.round(entry.startTime))}ms ${name} [${rect(source.previousRect)}] -> [${rect(source.currentRect)}]`
+              );
+            }
           }
         });
         observer.observe({ type: 'layout-shift', buffered: true });
         setTimeout(() => {
           observer.disconnect();
-          resolve(total);
+          resolve({ total, sources });
         }, 300);
       })
   );
+
+const expectNoShift = async (page: Page, when: string) => {
+  const cls = await measureCls(page);
+  expect(cls.total, `${when}: ${cls.sources.join(' | ')}`).toBe(0);
+};
 
 test('home has a cumulative layout shift of 0, before and after the islands mount', async ({
   page
@@ -125,11 +150,35 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
     window.scrollTo(0, document.body.scrollHeight);
   });
   await page.waitForTimeout(500);
-  expect(await measureCls(page)).toBe(0);
+  await expectNoShift(page, 'after load and a scroll to the bottom');
   // The WebMCP island arrives after idle and fills a reserved row in the footer.
   await expect(badge(page)).toBeVisible({ timeout: 10_000 });
   await page.waitForTimeout(300);
-  expect(await measureCls(page)).toBe(0);
+  await expectNoShift(page, 'after the badge');
+});
+
+// The web fonts arriving after first paint must not move anything: the fallback faces are
+// metric-adjusted, and every row that could wrap differently has a fixed line count (D15
+// amendment). Thirty loads per width with the font files held back two seconds; any entry fails
+// the run with the element and its rects.
+const FONT_DELAY_RUNS = 30;
+test('fonts arriving two seconds late cause no layout shift, thirty times over', async ({
+  page
+}) => {
+  test.skip(
+    !['mobile-390', 'desktop-1280'].includes(test.info().project.name),
+    'the two widths the budget names'
+  );
+  test.setTimeout(10 * 60_000);
+  await page.route('**/*.woff2', async route => {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await route.continue();
+  });
+  for (let run = 1; run <= FONT_DELAY_RUNS; run++) {
+    await page.goto('/', { waitUntil: 'load' });
+    await page.waitForTimeout(2600);
+    await expectNoShift(page, `run ${String(run)} with the fonts delayed`);
+  }
 });
 
 test('home JavaScript for evergreen browsers stays within the measured budget, islands excluded', async ({

@@ -195,6 +195,8 @@ The accent carries the primary action (the resume pill), the link chips, the tim
 
 Geist for body and headings. Geist Mono for labels, dates, the timeline rungs, chips, the header nav and the footer.
 
+Both faces are self-hosted through `next/font`, preloaded, and paired with a metric-adjusted fallback on Arial; they load with `font-display: optional`, so a font that misses first paint is not swapped in on that visit. A late swap re-centres the hero text by a few pixels, which counts as layout shift even inside a full-width block, and no swap is the only way to zero (D15 amendment). The cost is one visit in the fallback face on a slow first load; the files are cached for the next.
+
 Four weights are in use: 400 for body text, 500 for the title line under the name, chips, tags, group labels and the header nav (shadcn's badge and button defaults), 600 for the name, headings and card titles, 700 for the year badge.
 
 `body` is fixed at 16px for prose at every width; `small` is the 15px secondary step for card text (project blurbs, timeline descriptors and highlights, the 404 line). The fluid scale (`fluid` above) covers `display` for the name, `h2` for section headings and `label` for mono labels; each of those `typography` tokens holds the level's floor at 390px; `label` bottoms out at 12px and reaches 13px by 1024px. Inside a card the hierarchy is title 16px at 600, text 15px at 400, labels and dates at the label scale; the year badge is 12px (13px from 1024px).
@@ -223,7 +225,7 @@ The base radius is 0.625rem; the scale is multiples of it (`rounded` above). Car
 
 ## Components
 
-Reuse an existing component before creating one. The page is built from: the fixed header (name, the resume pill at its 28px small size and the section links at that height, on one line), the hero (a fixed cover cropped to its top with a bottom fade and an accent tint in dark, a transparent band over it, overlapping avatar, name, title, balanced headline, location, the resume pill at its 36px button size with the two links at the same height and their icons on the label's x-height), six project cards, timeline nodes with year badges, chip groups, and the one-line footer.
+Reuse an existing component before creating one. The page is built from: the fixed header (name, the resume pill at its 28px small size and the section links at that height, on one line), the hero (a fixed cover cropped to its top with a bottom fade and an accent tint in dark, a transparent band over it, overlapping avatar, name, title, balanced headline, location, the resume pill at its 36px button size with the two links at the same height and their icons on the label's x-height, the three on one 36px row that never wraps, with a 0.875rem gap and a 0.75rem pill padding on phones and 1.5rem and 1rem from 640px, so a wider fallback face cannot add a second line), six project cards, timeline nodes with year badges, chip groups, and the one-line footer.
 
 A project card is, top to bottom, the image, the year span as a mono label, the title, the one-line blurb and a row of proof chips only, so the row wraps freely. The card is one link to its primary proof: the title anchor stretches over the card, and both proof chips are anchors above it, the primary to the same destination. Hover lifts the card 2px and brightens its ring.
 
