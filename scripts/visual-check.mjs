@@ -123,9 +123,6 @@ for (const scheme of schemes) {
     });
     if (motion) {
       // Scroll-driven reveals follow position, so each section is captured after an instant scroll.
-      // One pointer move stands in for the visitor's input: an instant scroll fires only a scroll
-      // event, which the intent-gated islands ignore (D18), so without it the cloud never mounts.
-      await page.mouse.move(8, 8);
       for (const id of SECTIONS) {
         const found = await page.evaluate(sectionId => {
           const section = document.getElementById(sectionId);
@@ -136,12 +133,17 @@ for (const scheme of schemes) {
         if (!found) continue;
         await page.waitForTimeout(SETTLE_MS);
         if (id === 'skills') {
-          // Let the cloud chunk load and mount where the gates allow it; bounded, never required.
-          await page
-            .locator('[data-island="cloud"] [data-cloud-view="cloud"]')
-            .waitFor({ timeout: 8000 })
-            .catch(() => undefined);
-          await page.waitForTimeout(SETTLE_MS);
+          // The cloud loads only on the Cloud control (D18): press it where the page offers it, then
+          // let the chunk load and mount; bounded, never required.
+          const cloud = page.getByRole('button', { name: 'Cloud' });
+          if (await cloud.count()) {
+            await cloud.click();
+            await page
+              .locator('[data-island="cloud"] [data-cloud-view="cloud"]')
+              .waitFor({ timeout: 8000 })
+              .catch(() => undefined);
+            await page.waitForTimeout(SETTLE_MS);
+          }
         }
         await shot(`-${id}`);
       }

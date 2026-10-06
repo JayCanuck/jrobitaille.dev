@@ -1,21 +1,19 @@
 'use client';
-// Why a client component: this is the one hydrated file on the page. It owns the dynamic imports
-// of every island (a Server Component cannot hand a loader function to the client) and schedules
-// each one on its trigger, so nothing but this file is in the initial JavaScript. Islands receive
-// their data as serialisable props from the Server Component that places them; they never import
-// content modules. No effect hook: the trigger is armed from a ref callback, which React 19
-// cleans up on unmount.
+// Why a client component: the island loader. It owns the dynamic import of each scheduled island
+// (a Server Component cannot hand a loader function to the client) and loads it on its trigger, so
+// nothing but this file is in the initial JavaScript. Islands receive their data as serialisable
+// props from the Server Component that places them; they never import content modules. No effect
+// hook: the trigger is armed from a ref callback, which React 19 cleans up on unmount. The skills
+// cloud is not scheduled here: it loads only on the Cloud toggle (D18), which the Toolbox view owns.
 import dynamic from 'next/dynamic';
 import { useState, type ReactNode } from 'react';
 
-import type { SkillsCloudProps } from '@/components/cloud/skills-cloud';
 import type { ModelContextProviderProps } from '@/components/webmcp/model-context-provider';
 
-type Trigger = 'idle' | 'cloud';
+type Trigger = 'idle';
 
 interface IslandPropsMap {
   webmcp: ModelContextProviderProps;
-  cloud: SkillsCloudProps;
 }
 
 type IslandName = keyof IslandPropsMap;
@@ -31,13 +29,6 @@ const islands: {
         import('@/components/webmcp/model-context-provider').then(
           module => module.ModelContextProvider
         ),
-      { ssr: false }
-    )
-  },
-  cloud: {
-    trigger: 'cloud',
-    Component: dynamic(
-      () => import('@/components/cloud/skills-cloud').then(module => module.SkillsCloud),
       { ssr: false }
     )
   }
@@ -72,81 +63,13 @@ const onIdle = (callback: () => void): Cleanup => {
   };
 };
 
-// Intent means an input event, never a scroll event: hash arrivals, scroll restoration and anchor
-// navigation all dispatch `scroll` without the visitor doing anything (D18).
-const INTENT_EVENTS = [
-  'wheel',
-  'touchstart',
-  'touchmove',
-  'keydown',
-  'pointerdown',
-  'pointermove'
-] as const;
-
-// Never load the cloud for a visitor who asked for less motion or less data, or without WebGL.
-const cloudAllowed = () => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-  if (window.matchMedia('(prefers-reduced-data: reduce)').matches) return false;
-  const connection = (navigator as { connection?: { saveData?: boolean } }).connection;
-  if (connection?.saveData) return false;
-  const canvas = document.createElement('canvas');
-  return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'));
-};
-
-// The cloud loads only when all three hold (D18): the page went idle after load, the slot is within
-// 200 px of the viewport, and the visitor gave one input event after load (wheel, touch, key or pointer; never a scroll). Being in
-// view at first paint is not enough on its own.
-const onCloudTrigger = (node: HTMLElement, callback: () => void): Cleanup => {
-  if (!cloudAllowed()) return () => undefined;
-  let idle = false;
-  let near = false;
-  let interacted = false;
-  let done = false;
-  const check = () => {
-    if (done || !idle || !near || !interacted) return;
-    done = true;
-    cleanup();
-    callback();
-  };
-  const onInteraction = () => {
-    if (document.readyState !== 'complete') return;
-    interacted = true;
-    check();
-  };
-  for (const type of INTENT_EVENTS) {
-    window.addEventListener(type, onInteraction, { passive: true });
-  }
-  const observer = new IntersectionObserver(
-    entries => {
-      near = entries.some(entry => entry.isIntersecting);
-      check();
-    },
-    { rootMargin: '200px' }
-  );
-  observer.observe(node);
-  const cancelIdle = onIdle(() => {
-    idle = true;
-    check();
-  });
-  const cleanup = () => {
-    for (const type of INTENT_EVENTS) window.removeEventListener(type, onInteraction);
-    observer.disconnect();
-    cancelIdle();
-  };
-  return cleanup;
-};
-
 const armers: Record<Trigger, (node: HTMLElement, callback: () => void) => Cleanup> = {
-  idle: (_node, callback) => onIdle(callback),
-  cloud: onCloudTrigger
+  idle: (_node, callback) => onIdle(callback)
 };
 
 export function Island<N extends IslandName>({ name, props, className, children }: IslandProps<N>) {
   const [ready, setReady] = useState(false);
-  const { trigger, Component } = islands[name] as {
-    trigger: Trigger;
-    Component: React.ComponentType<IslandPropsMap[N]>;
-  };
+  const { trigger, Component } = islands[name];
   const ref = (node: HTMLElement | null) => {
     if (!node || ready) return;
     return armers[trigger](node, () => {

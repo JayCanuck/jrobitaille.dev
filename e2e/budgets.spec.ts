@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
+import { profile } from '../src/content/resume';
 import { siteCopy } from '../src/content/site';
 
 // AGENTS.md budget: 150 KB gzipped on home for evergreen browsers. Measured 2026-10-04 with Next
@@ -24,12 +25,19 @@ const LAZY_BUDGET_BYTES = {
   // @mcp-b/webmcp-polyfill 5.1.0, loaded only when the browser has no native API (8.0 KB measured).
   'webmcp-polyfill': 12 * 1024,
   // /api/profile.json, fetched on the first tool call, never at idle.
-  'profile-json': 24 * 1024
+  'profile-json': 24 * 1024,
+  // The skills cloud: three, fiber and the island in one chunk (245 KB measured, D18).
+  cloud: 260 * 1024
 };
 const POLYFILL_MARKER = '__isWebMCPPolyfill';
+const THREE_MARKER = 'WebGLRenderer';
 
 // 'use client' is allowed only here, and only with a comment on the next line saying why.
-const CLIENT_ALLOWLIST = ['src/components/islands/', 'src/components/webmcp/'];
+const CLIENT_ALLOWLIST = [
+  'src/components/islands/',
+  'src/components/webmcp/',
+  'src/components/cloud/'
+];
 
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap(name => {
@@ -71,17 +79,26 @@ const loadEventStart = (page: Page) =>
 // "Initial" JavaScript (D17): the union of the module scripts the exported HTML references (nomodule
 // polyfills never load in evergreen browsers, D10), the script preloads in that HTML, and every
 // script fetched before the load event with no interaction. Everything an island loads comes later.
-const initialScripts = async (page: Page) => {
-  const fromHtml = await page.evaluate(() => [
-    ...Array.from(document.scripts)
-      .filter(script => !script.noModule && script.src)
-      .map(script => script.src),
-    ...Array.from(
-      document.querySelectorAll<HTMLLinkElement>(
-        'link[rel="preload"][as="script"], link[rel="modulepreload"]'
-      )
-    ).map(link => link.href)
-  ]);
+const initialScripts = async (page: Page, request: APIRequestContext) => {
+  // From the served HTML, not the live DOM: Turbopack appends a script tag for every dynamic
+  // chunk it loads, so after hydration the DOM would list an island as if the HTML had.
+  const html = await (await request.get('/')).text();
+  const base = new URL(page.url());
+  const tags = (name: string) =>
+    Array.from(html.matchAll(new RegExp(`<${name}\\b([^>]*)>`, 'g'))).map(match => match[1] ?? '');
+  const attribute = (attrs: string, name: string) =>
+    new RegExp(`\\b${name}="([^"]+)"`).exec(attrs)?.[1];
+  const fromHtml = [
+    ...tags('script')
+      .filter(attrs => !/\bnomodule\b/i.test(attrs))
+      .map(attrs => attribute(attrs, 'src')),
+    ...tags('link')
+      .filter(attrs => /rel="(preload|modulepreload)"/.test(attrs))
+      .filter(attrs => !attrs.includes('rel="preload"') || attrs.includes('as="script"'))
+      .map(attrs => attribute(attrs, 'href'))
+  ]
+    .filter((path): path is string => Boolean(path))
+    .map(path => new URL(path, base).href);
   const loadStart = await loadEventStart(page);
   const untilLoad = await page.evaluate(
     from =>
@@ -103,6 +120,8 @@ interface ShiftSource {
   name: string;
   // Inside the hero: centred text that re-centres by a few pixels at the font swap.
   inHero: boolean;
+  // Inside the Toolbox reserved box: wrapping chips that may re-break while the box stays put.
+  inToolbox: boolean;
   // About prose: left-aligned paragraphs whose line count a wide fallback face can change.
   inAbout: boolean;
   text: string;
@@ -116,6 +135,7 @@ const measureCls = (page: Page) =>
         const sources: ShiftSource[] = [];
         const hero = document.querySelector('section.hero-timeline');
         const about = document.getElementById('about');
+        const toolbox = document.querySelector('[data-island="cloud"]');
         const observer = new PerformanceObserver(list => {
           for (const entry of list.getEntries() as (PerformanceEntry & {
             value: number;
@@ -144,6 +164,7 @@ const measureCls = (page: Page) =>
                 name,
                 inHero,
                 inAbout: Boolean(about && element && about.contains(element)),
+                inToolbox: Boolean(toolbox && element && toolbox.contains(element)),
                 text: `${entry.value.toFixed(4)} at ${String(Math.round(entry.startTime))}ms ${name} [${rect(a)}] -> [${rect(b)}]`
               });
             }
@@ -198,6 +219,11 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
   await expect(badge(page)).toBeVisible({ timeout: 10_000 });
   await page.waitForTimeout(300);
   await expectNoShift(page, 'after the badge');
+  // The cloud overlays the chips inside their reserved box once the Cloud control is pressed.
+  await page.getByRole('button', { name: siteCopy.skillsView.cloud }).click();
+  await expect(page.locator('[data-island="cloud"] canvas')).toBeAttached({ timeout: 20_000 });
+  await page.waitForTimeout(500);
+  await expectNoShift(page, 'after the cloud mounted');
 });
 
 // The web fonts arriving after first paint (D15 amendment). The first viewport is immune to the
@@ -213,6 +239,16 @@ test('home has a cumulative layout shift of 0, before and after the islands moun
 const FONT_DELAY_RUNS = Number(process.env.FONT_DELAY_RUNS ?? (process.env.CI ? 10 : 30));
 const FONT_SWAP_CLS = 0.01;
 
+// The Toolbox reserved box in page coordinates: its chips may re-break under the fallback face,
+// but the box itself never changes size or position at the swap.
+const toolboxBox = (page: Page) =>
+  page.evaluate(() => {
+    const box = document.querySelector('[data-island="cloud"]');
+    if (!box) return null;
+    const r = box.getBoundingClientRect();
+    return [r.x, r.y + window.scrollY, r.width, r.height].map(n => Math.round(n));
+  });
+
 // Line counts of every text-bearing element above the fold, keyed by element, so a wrap change
 // between the fallback and the web font is named; About prose is keyed apart.
 const foldLineCounts = (page: Page) =>
@@ -226,7 +262,10 @@ const foldLineCounts = (page: Page) =>
       if (!text) return;
       const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
       if (!lineHeight) return;
-      const section = el.closest('#about') ? 'about: ' : '';
+      // About prose and the chip rows inside the Toolbox box may re-break at the swap; the box
+      // itself is asserted unchanged instead (D18).
+      const chipRow = el.closest('[data-island="cloud"]') && /^(ul|li)$/i.test(el.tagName);
+      const section = el.closest('#about') ? 'about: ' : chipRow ? 'toolbox-chips: ' : '';
       const base = `${section}${el.tagName.toLowerCase()}.${(el.getAttribute('class') ?? '').slice(0, 24)} "${text.slice(0, 16)}"`;
       const n = (seen.get(base) ?? 0) + 1;
       seen.set(base, n);
@@ -255,6 +294,7 @@ test('fonts arriving two seconds late move nothing outside the hero and the Abou
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#hero-heading')).toBeVisible();
     const before = await foldLineCounts(page);
+    const boxBefore = await toolboxBox(page);
     if (run === 1) {
       console.log(
         `${tag} fallback rendered for the name: ${await platformFonts(page, '#hero-heading')}; for a label: ${await platformFonts(page, 'section.hero-timeline li a')}`
@@ -268,15 +308,21 @@ test('fonts arriving two seconds late move nothing outside the hero and the Abou
       );
     }
     const after = await foldLineCounts(page);
+    expect(
+      await toolboxBox(page),
+      `${tag} run ${String(run)}: the Toolbox reserved box changed`
+    ).toEqual(boxBefore);
     const rewrapped = Object.keys(before)
-      .filter(key => !key.startsWith('about: '))
+      .filter(key => !key.startsWith('about: ') && !key.startsWith('toolbox-chips: '))
       .filter(key => key in after && before[key] !== after[key])
       .map(key => `${key}: ${String(before[key])} -> ${String(after[key])} lines`);
     expect(rewrapped, `${tag} run ${String(run)}: line counts above the fold changed`).toEqual([]);
     const cls = await measureCls(page);
     const label = `${tag} run ${String(run)}: ${describeShifts(cls.sources)}`;
     expect(cls.total, label).toBeLessThan(FONT_SWAP_CLS);
-    const foreign = cls.sources.filter(source => !(source.inHero || source.inAbout));
+    const foreign = cls.sources.filter(
+      source => !(source.inHero || source.inAbout || source.inToolbox)
+    );
     expect(
       foreign.map(source => source.text),
       label
@@ -296,7 +342,7 @@ test('home JavaScript for evergreen browsers stays within the measured budget, i
   request
 }) => {
   await page.goto('/', { waitUntil: 'load' });
-  const initial = await initialScripts(page);
+  const initial = await initialScripts(page, request);
   expect(initial.size).toBeGreaterThan(0);
   const total = await sumGzipped(request, initial);
   expect(total, `initial scripts: ${[...initial].join(', ')}`).toBeLessThan(JS_BUDGET_BYTES);
@@ -321,7 +367,7 @@ test('the WebMCP island and the polyfill stay within their own lazy budgets', as
   request
 }) => {
   await page.goto('/', { waitUntil: 'load' });
-  const initial = await initialScripts(page);
+  const initial = await initialScripts(page, request);
   const loadStart = await loadEventStart(page);
   await expect(badge(page)).toBeVisible({ timeout: 10_000 });
   await expect
@@ -382,6 +428,30 @@ test('the profile JSON is fetched once, on the first tool call, within its budge
     LAZY_BUDGET_BYTES['profile-json']
   );
 });
+test('the skills cloud loads only on the Cloud control and stays within its lazy budget', async ({
+  page,
+  request
+}) => {
+  await page.goto('/', { waitUntil: 'load' });
+  const initial = await initialScripts(page, request);
+  const loadStart = await loadEventStart(page);
+  await page.getByRole('button', { name: siteCopy.skillsView.cloud }).click();
+  await expect(page.locator('[data-island="cloud"] canvas')).toBeAttached({ timeout: 20_000 });
+  const lazy = (await resourcesSince(page, loadStart, /\.js(\?|$)/)).filter(
+    url => !initial.has(url)
+  );
+  const cloud: string[] = [];
+  for (const url of lazy) if (await hasMarker(request, url, THREE_MARKER)) cloud.push(url);
+  expect(cloud.length).toBeGreaterThan(0);
+  expect(await sumGzipped(request, cloud), cloud.join(', ')).toBeLessThan(LAZY_BUDGET_BYTES.cloud);
+  // Islands never import content modules: no About paragraph can be in the cloud chunk.
+  for (const url of cloud) {
+    const body = await (await request.get(url)).text();
+    for (const paragraph of profile.aboutLong) expect(body, url).not.toContain(paragraph);
+    expect(body, url).not.toContain(profile.email);
+  }
+});
+
 test('responses carry the strict security headers, and the agent JSON is CORS-open', async ({
   request
 }) => {

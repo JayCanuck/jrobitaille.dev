@@ -1,25 +1,25 @@
 'use client';
 // Why a client component: the skills cloud island (D18) needs WebGL, resize and visibility
-// observers, pointer drag and the view state in the browser. It overlays the server-rendered
-// chips inside the same reserved box: the chips fade to opacity 0 but stay in the DOM and the
-// accessibility tree, the canvas is aria-hidden, and the box never changes size. Every failure
-// path renders nothing, which leaves the chips as the view. The terms and the control labels
-// arrive as props from the Server Component: islands never import content modules. No effect
-// hook: observers are armed from a ref callback.
+// observers, pointer drag and the colour scheme in the browser. Mounted by the Toolbox view on the
+// first Cloud press, it overlays the server-rendered chips inside the same reserved box: the chips
+// fade to opacity 0 but stay in the DOM and the accessibility tree, the canvas is aria-hidden, and
+// the box never changes size. Every failure path renders nothing, which leaves the chips. Under
+// prefers-reduced-motion the cloud does not turn on its own; drag still works. The terms arrive as
+// props: islands never import content modules. No effect hook: observers are armed from a ref
+// callback.
 import { useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { CloudBoundary } from '@/components/cloud/cloud-boundary';
 import { CloudScene } from '@/components/cloud/cloud-scene';
 import { type CloudColors, readCloudColors } from '@/components/cloud/term-sprites';
-import { type SkillsView, ViewToggle, type ViewToggleLabels } from '@/components/cloud/view-toggle';
+import type { SkillsView } from '@/components/cloud/view-toggle';
 import { createDrag } from '@/lib/cloud/drag';
 
 export interface SkillsCloudProps {
   terms: string[];
-  labels: ViewToggleLabels;
-  // Id of the heading-row slot the List/Cloud control renders into.
-  toggleSlotId: string;
+  view: SkillsView;
+  // Called once the WebGL context exists and the cloud can show.
+  onMounted: () => void;
 }
 
 // Sphere radius as a share of the slot's shorter side, leaving room for the front labels.
@@ -30,11 +30,13 @@ interface Size {
   height: number;
 }
 
-export function SkillsCloud({ terms, labels, toggleSlotId }: SkillsCloudProps) {
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+export function SkillsCloud({ terms, view, onMounted }: SkillsCloudProps) {
   const [mounted, setMounted] = useState(false);
-  const [view, setView] = useState<SkillsView>('cloud');
   const [inView, setInView] = useState(true);
   const [pageVisible, setPageVisible] = useState(() => document.visibilityState === 'visible');
+  const [autoRotate, setAutoRotate] = useState(() => !reducedMotion());
   const [dragging, setDragging] = useState(false);
   const [colors, setColors] = useState<CloudColors>(() => readCloudColors());
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
@@ -42,7 +44,8 @@ export function SkillsCloud({ terms, labels, toggleSlotId }: SkillsCloudProps) {
   const drag = useRef(createDrag());
 
   // Observers live for the island's life: size (the box is 4:3 or taller), the viewport, the
-  // page's visibility and the colour scheme. React 19 runs the returned cleanup on unmount.
+  // page's visibility, the colour scheme and the motion preference. React 19 runs the returned
+  // cleanup on unmount.
   const arm = (node: HTMLDivElement | null) => {
     if (!node) return;
     const resize = new ResizeObserver(entries => {
@@ -63,11 +66,17 @@ export function SkillsCloud({ terms, labels, toggleSlotId }: SkillsCloudProps) {
       setColors(readCloudColors());
     };
     scheme.addEventListener('change', onScheme);
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onMotion = () => {
+      setAutoRotate(!motion.matches);
+    };
+    motion.addEventListener('change', onMotion);
     return () => {
       resize.disconnect();
       intersection.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       scheme.removeEventListener('change', onScheme);
+      motion.removeEventListener('change', onMotion);
     };
   };
 
@@ -107,44 +116,41 @@ export function SkillsCloud({ terms, labels, toggleSlotId }: SkillsCloudProps) {
 
   const radius = Math.min(size.width, size.height) * RADIUS_SHARE;
   const showing = mounted && view === 'cloud';
-  const running = showing && inView && pageVisible;
-  const toggleSlot = document.getElementById(toggleSlotId);
+  // Frames run while the cloud shows on screen (drag and inertia need them); the idle turn runs on
+  // top of that only where motion is welcome.
+  const active = showing && inView && pageVisible;
+  const running = active && autoRotate;
 
   return (
-    <>
-      <div
-        ref={arm}
-        aria-hidden="true"
-        data-cloud-view={mounted ? view : undefined}
-        data-cloud-state={running ? 'running' : 'paused'}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        onLostPointerCapture={onPointerEnd}
-        className={`absolute inset-0 touch-pan-y transition-opacity duration-300 select-none motion-reduce:transition-none ${showing ? 'opacity-100' : 'pointer-events-none opacity-0'} ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      >
-        {radius > 0 && (
-          <CloudBoundary>
-            <CloudScene
-              terms={terms}
-              radius={radius}
-              colors={colors}
-              running={running}
-              drag={drag}
-              fontSample={document.querySelector('#skills li')}
-              onCreated={() => {
-                setMounted(true);
-              }}
-            />
-          </CloudBoundary>
-        )}
-      </div>
-      {/* Outside the overlay on purpose: React synthetic pointer events bubble through the React
-          tree, so a control portalled inside the overlay would read as a pointer on the cloud. */}
-      {mounted &&
-        toggleSlot &&
-        createPortal(<ViewToggle view={view} labels={labels} onChange={setView} />, toggleSlot)}
-    </>
+    <div
+      ref={arm}
+      aria-hidden="true"
+      data-cloud-view={mounted ? view : undefined}
+      data-cloud-state={running ? 'running' : 'paused'}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      onLostPointerCapture={onPointerEnd}
+      className={`absolute inset-0 touch-pan-y transition-opacity duration-300 select-none motion-reduce:transition-none ${showing ? 'opacity-100' : 'pointer-events-none opacity-0'} ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+    >
+      {radius > 0 && (
+        <CloudBoundary>
+          <CloudScene
+            terms={terms}
+            radius={radius}
+            colors={colors}
+            active={active}
+            rotate={running}
+            drag={drag}
+            fontSample={document.querySelector('#skills li')}
+            onCreated={() => {
+              setMounted(true);
+              onMounted();
+            }}
+          />
+        </CloudBoundary>
+      )}
+    </div>
   );
 }

@@ -23,7 +23,9 @@ interface CloudSceneProps {
   // Radius of the sphere in CSS px, from the slot's size.
   radius: number;
   colors: CloudColors;
-  running: boolean;
+  // Frames run while active (drag and inertia need them); the idle turn only while rotate holds.
+  active: boolean;
+  rotate: boolean;
   drag: RefObject<Drag>;
   fontSample: Element | null;
   onCreated: () => void;
@@ -34,13 +36,13 @@ const TILT = 0.18;
 // The tilt stays within a readable band however far a drag goes.
 const MAX_TILT = 0.9;
 
-type RotatingCloudProps = Omit<CloudSceneProps, 'onCreated'>;
+type RotatingCloudProps = Omit<CloudSceneProps, 'onCreated' | 'active'>;
 
 function RotatingCloud({
   terms,
   radius,
   colors,
-  running,
+  rotate,
   drag: dragRef,
   fontSample
 }: RotatingCloudProps) {
@@ -76,7 +78,7 @@ function RotatingCloud({
       const velocity = drag.takeVelocity(Math.exp(-delta / INERTIA_SECONDS));
       group.rotation.y += velocity.x * 1000 * RADIANS_PER_PX * delta;
       group.rotation.x += velocity.y * 1000 * RADIANS_PER_PX * delta;
-      if (running) group.rotation.y += delta * ROTATION_PER_SECOND;
+      if (rotate) group.rotation.y += delta * ROTATION_PER_SECOND;
     }
     group.rotation.x = Math.max(-MAX_TILT, Math.min(MAX_TILT, group.rotation.x));
     applyDepth(spritesRef.current, radius, colors);
@@ -86,12 +88,12 @@ function RotatingCloud({
   return <group ref={attach} />;
 }
 
-export function CloudScene({ onCreated, ...cloud }: CloudSceneProps) {
+export function CloudScene({ onCreated, active, ...cloud }: CloudSceneProps) {
   return (
     <Canvas
       orthographic
       dpr={[1, 1.5]}
-      frameloop={cloud.running ? 'always' : 'never'}
+      frameloop={active ? 'always' : 'never'}
       gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
       camera={{ position: [0, 0, 1000], near: 1, far: 2000, zoom: 1 }}
       onCreated={onCreated}
