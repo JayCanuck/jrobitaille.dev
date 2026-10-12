@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@mcp-b/webmcp-polyfill": "5.1.0",
+    "@mcp-b/webmcp-polyfill": "6.0.0",
     "@react-three/fiber": "^9.8.1",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^1.52.0",
